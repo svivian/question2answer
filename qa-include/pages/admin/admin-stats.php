@@ -31,13 +31,13 @@ require_once QA_INCLUDE_DIR . 'db/admin.php';
 require_once QA_INCLUDE_DIR . 'app/format.php';
 
 
-//	Check admin privileges (do late to allow one DB query)
+// Check admin privileges (do late to allow one DB query)
 
 if (!qa_admin_check_privileges($qa_content))
 	return $qa_content;
 
 
-//	Get the information to display
+// Get the information to display
 
 $qcount = (int)qa_opt('cache_qcount');
 $qcount_anon = qa_db_count_posts('Q', false);
@@ -49,7 +49,7 @@ $ccount = (int)qa_opt('cache_ccount');
 $ccount_anon = qa_db_count_posts('C', false);
 
 
-//	Prepare content for theme
+// Prepare content for theme
 
 $qa_content = qa_content_prepare();
 
@@ -274,7 +274,7 @@ $qa_content['script_rel'][] = 'qa-content/qa-admin.js?' . QA_VERSION;
 $qa_content['script_var']['qa_warning_recalc'] = qa_lang('admin/stop_recalc_warning');
 
 $qa_content['script_onloads'][] = array(
-    "qa_version_check('https://raw.githubusercontent.com/q2a/question2answer/master/VERSION.txt', " . qa_js(qa_html(QA_VERSION), true) . ", 'q2a-version', true);"
+	"qa_version_check('https://raw.githubusercontent.com/q2a/question2answer/master/VERSION.txt', " . qa_js(qa_html(QA_VERSION), true) . ", 'q2a-version', true);"
 );
 
 $qa_content['navigation']['sub'] = qa_admin_sub_navigation();

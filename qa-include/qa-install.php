@@ -35,8 +35,12 @@ qa_report_process_stage('init_install');
 if (!function_exists('qa_install_db_fail_handler')) {
 	/**
 	 * Handler function for database failures during the installation process
+	 * @param $type
+	 * @param int $errno
+	 * @param string $error
+	 * @param string $query
 	 */
-	function qa_install_db_fail_handler($type, $errno=null, $error=null, $query=null)
+	function qa_install_db_fail_handler($type, $errno = null, $error = null, $query = null)
 	{
 		global $pass_failure_from_install;
 
@@ -90,7 +94,7 @@ if (!isset($pass_failure_type) && qa_clicked('super')) {
 }
 
 
-//	Output start of HTML early, so we can see a nicely-formatted list of database queries when upgrading
+// Output start of HTML early, so we can see a nicely-formatted list of database queries when upgrading
 
 ?><!DOCTYPE html>
 <html>
@@ -219,7 +223,7 @@ if (qa_db_connection(false) !== null && !@$pass_failure_from_install) {
 					$errorhtml .= "\n\nWhen you click below, your Question2Answer site will be set up to integrate with the users of your WordPress site <a href=\"".qa_html(get_option('home'))."\" target=\"_blank\">".qa_html(get_option('blogname'))."</a>. Please consult the online documentation for more information.";
 				}
 				elseif (defined('QA_FINAL_JOOMLA_INTEGRATE_PATH')) {
-                    $jconfig = new JConfig();
+					$jconfig = new JConfig();
 					$errorhtml .= "\n\nWhen you click below, your Question2Answer site will be set up to integrate with the users of your Joomla! site <a href=\"../\" target=\"_blank\">".$jconfig->sitename."</a>. It's also recommended to install the Joomla QAIntegration plugin for additional user-access control. Please consult the online documentation for more information.";
 				}
 				else {
@@ -326,7 +330,7 @@ if (strlen($suggest))
 	echo '<p>'.$suggest.'</p>';
 
 
-//	Very simple general form display logic (we don't use theme since it depends on tons of DB options)
+// Very simple general form display logic (we don't use theme since it depends on tons of DB options)
 
 if (count($fields)) {
 	echo '<table>';
