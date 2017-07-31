@@ -303,9 +303,9 @@ function qa_post_html_fields($post, $userid, $cookieid, $usershtml, $dummy, $opt
 	// Useful stuff used throughout function
 
 	$postid = $post['postid'];
-	$isquestion = ($post['basetype'] == 'Q');
-	$isanswer = ($post['basetype'] == 'A');
-	$iscomment = ($post['basetype'] == 'C');
+	$isquestion = $post['basetype'] == 'Q';
+	$isanswer = $post['basetype'] == 'A';
+	$iscomment = $post['basetype'] == 'C';
 	$isbyuser = qa_post_is_by_user($post, $userid, $cookieid);
 	$anchor = urlencode(qa_anchor($post['basetype'], $postid));
 	$elementid = isset($options['elementid']) ? $options['elementid'] : $anchor;
@@ -316,7 +316,8 @@ function qa_post_html_fields($post, $userid, $cookieid, $usershtml, $dummy, $opt
 
 	// High level information
 
-	$fields['hidden'] = @$post['hidden'];
+	$fields['hidden'] = isset($post['hidden']) ? $post['hidden'] : null;
+	$fields['queued'] = isset($post['queued']) ? $post['queued'] : null;
 	$fields['tags'] = 'id="' . qa_html($elementid) . '"';
 
 	$fields['classes'] = ($isquestion && $favoritedview && @$post['userfavoriteq']) ? 'qa-q-favorited' : '';
@@ -464,14 +465,6 @@ function qa_post_html_fields($post, $userid, $cookieid, $usershtml, $dummy, $opt
 		$netvotes = abs($netvotes);
 		$netvoteshtml = $netvotesPrefix . qa_html(qa_format_number($netvotes, 0, true));
 
-		// ...with microformats if appropriate
-
-		if ($microdata) {
-			// vote display might be formatted (e.g. '2k') so use meta tag for true count
-			$netvoteshtml .= '<meta itemprop="upvoteCount" content="' . qa_html($netvotes) . '"/>';
-			$upvoteshtml .= '<meta itemprop="upvoteCount" content="' . qa_html($upvotes) . '"/>';
-		}
-
 		// Pass information on vote viewing
 
 		// $voteview will be one of:
@@ -482,14 +475,28 @@ function qa_post_html_fields($post, $userid, $cookieid, $usershtml, $dummy, $opt
 
 		$fields['vote_on_page'] = strpos($voteview, '-disabled-page') ? 'disabled' : 'enabled';
 
-		$fields['upvotes_view'] = ($upvotes == 1) ? qa_lang_html_sub_split('main/1_liked', $upvoteshtml, '1')
-			: qa_lang_html_sub_split('main/x_liked', $upvoteshtml);
+		if ($iscomment) {
+			// for comments just show number, no additional text
+			$fields['upvotes_view'] = array('prefix' => '', 'data' => $upvoteshtml, 'suffix' => '');
+			$fields['downvotes_view'] = array('prefix' => '', 'data' => $downvoteshtml, 'suffix' => '');
+			$fields['netvotes_view'] = array('prefix' => '', 'data' => $netvoteshtml, 'suffix' => '');
+		} else {
+			$fields['upvotes_view'] = $upvotes == 1
+				? qa_lang_html_sub_split('main/1_liked', $upvoteshtml, '1')
+				: qa_lang_html_sub_split('main/x_liked', $upvoteshtml);
+			$fields['downvotes_view'] = $downvotes == 1
+				? qa_lang_html_sub_split('main/1_disliked', $downvoteshtml, '1')
+				: qa_lang_html_sub_split('main/x_disliked', $downvoteshtml);
+			$fields['netvotes_view'] = $netvotes == 1
+				? qa_lang_html_sub_split('main/1_vote', $netvoteshtml, '1')
+				: qa_lang_html_sub_split('main/x_votes', $netvoteshtml);
+		}
 
-		$fields['downvotes_view'] = ($downvotes == 1) ? qa_lang_html_sub_split('main/1_disliked', $downvoteshtml, '1')
-			: qa_lang_html_sub_split('main/x_disliked', $downvoteshtml);
-
-		$fields['netvotes_view'] = ($netvotes == 1) ? qa_lang_html_sub_split('main/1_vote', $netvoteshtml, '1')
-			: qa_lang_html_sub_split('main/x_votes', $netvoteshtml);
+		// schema.org microdata - vote display might be formatted (e.g. '2k') so we use meta tag for true count
+		if ($microdata) {
+			$fields['netvotes_view']['suffix'] .= ' <meta itemprop="upvoteCount" content="' . qa_html($netvotes) . '"/>';
+			$fields['upvotes_view']['suffix'] .= ' <meta itemprop="upvoteCount" content="' . qa_html($upvotes) . '"/>';
+		}
 
 		// Voting buttons
 
@@ -498,7 +505,12 @@ function qa_post_html_fields($post, $userid, $cookieid, $usershtml, $dummy, $opt
 
 		if ($fields['hidden']) {
 			$fields['vote_state'] = 'disabled';
-			$fields['vote_up_tags'] = 'title="' . qa_lang_html($isanswer ? 'main/vote_disabled_hidden_a' : 'main/vote_disabled_hidden_q') . '"';
+			$fields['vote_up_tags'] = 'title="' . qa_lang_html('main/vote_disabled_hidden') . '"';
+			$fields['vote_down_tags'] = $fields['vote_up_tags'];
+
+		} elseif ($fields['queued']) {
+			$fields['vote_state'] = 'disabled';
+			$fields['vote_up_tags'] = 'title="' . qa_lang_html('main/vote_disabled_queued') . '"';
 			$fields['vote_down_tags'] = $fields['vote_up_tags'];
 
 		} elseif ($isbyuser) {
@@ -1206,7 +1218,7 @@ function qa_html_page_links($request, $start, $pagesize, $count, $prevnext, $par
 	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
 
 	$thispage = 1 + floor($start / $pagesize);
-	$lastpage = ceil(min($count, 1 + QA_MAX_LIMIT_START) / $pagesize);
+	$lastpage = ceil(min((int)$count, 1 + QA_MAX_LIMIT_START) / $pagesize);
 
 	if ($thispage > 1 || $lastpage > $thispage) {
 		$links = array('label' => qa_lang_html('main/page_label'), 'items' => array());
@@ -1662,7 +1674,6 @@ function qa_set_up_tag_field(&$qa_content, &$field, $fieldname, $tags, $examplet
 {
 	$template = '<a href="#" class="qa-tag-link" onclick="return qa_tag_click(this);">^</a>';
 
-	$qa_content['script_rel'][] = 'qa-content/qa-ask.js?' . QA_VERSION;
 	$qa_content['script_var']['qa_tag_template'] = $template;
 	$qa_content['script_var']['qa_tag_onlycomma'] = (int)qa_opt('tag_separator_comma');
 	$qa_content['script_var']['qa_tags_examples'] = qa_html(implode(',', $exampletags));
@@ -1736,7 +1747,6 @@ function qa_set_up_category_field(&$qa_content, &$field, $fieldname, $navcategor
 	else
 		$maxdepth = QA_CATEGORY_DEPTH;
 
-	$qa_content['script_rel'][] = 'qa-content/qa-ask.js?' . QA_VERSION;
 	$qa_content['script_onloads'][] = sprintf('qa_category_select(%s, %s);', qa_js($fieldname), qa_js($startpath));
 
 	$qa_content['script_var']['qa_cat_exclude'] = $excludecategoryid;

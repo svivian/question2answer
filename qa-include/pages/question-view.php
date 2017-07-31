@@ -119,7 +119,6 @@ function qa_page_q_post_rules($post, $parentpost = null, $siblingposts = null, $
 	}
 
 	$rules['isbyuser'] = qa_post_is_by_user($post, $userid, $cookieid);
-	$rules['queued'] = substr($post['type'], 1) == '_QUEUED';
 	$rules['closed'] = $post['basetype'] == 'Q' && (isset($post['closedbyid']) || (isset($post['selchildid']) && qa_opt('do_close_on_select')));
 
 	// Cache some responses to the user permission checks
@@ -134,13 +133,15 @@ function qa_page_q_post_rules($post, $parentpost = null, $siblingposts = null, $
 	$permiterror_flag = qa_user_permit_error('permit_flag', null, $userlevel, true, $userfields);
 	$permiterror_hide_show = qa_user_permit_error('permit_hide_show', null, $userlevel, true, $userfields);
 	$permiterror_hide_show_self = $rules['isbyuser'] ? qa_user_permit_error(null, null, $userlevel, true, $userfields) : $permiterror_hide_show;
-	$permiterror_close_open = qa_user_permit_error($rules['isbyuser'] ? null : 'permit_close_q', null, $userlevel, true, $userfields);
+
+	$close_option = $rules['isbyuser'] && qa_opt('allow_close_own_questions') ? null : 'permit_close_q';
+	$permiterror_close_open = qa_user_permit_error($close_option, null, $userlevel, true, $userfields);
 	$permiterror_moderate = qa_user_permit_error('permit_moderate', null, $userlevel, true, $userfields);
 
 	// General permissions
 
 	$rules['authorlast'] = !isset($post['lastuserid']) || $post['lastuserid'] === $post['userid'];
-	$rules['viewable'] = $post['hidden'] ? !$permiterror_hide_show_self : ($rules['queued'] ? ($rules['isbyuser'] || !$permiterror_moderate) : true);
+	$rules['viewable'] = $post['hidden'] ? !$permiterror_hide_show_self : ($post['queued'] ? ($rules['isbyuser'] || !$permiterror_moderate) : true);
 
 	// Answer, comment and edit might show the button even if the user still needs to do something (e.g. log in)
 
@@ -154,7 +155,7 @@ function qa_page_q_post_rules($post, $parentpost = null, $siblingposts = null, $
 	$button_errors = array('login', 'level', 'approve');
 
 	$rules['editbutton'] = !$post['hidden'] && !$rules['closed']
-		&& ($rules['isbyuser'] || (!in_array($permiterror_edit, $button_errors) && (!$rules['queued'])));
+		&& ($rules['isbyuser'] || (!in_array($permiterror_edit, $button_errors) && (!$post['queued'])));
 	$rules['editable'] = $rules['editbutton'] && ($rules['isbyuser'] || !$permiterror_edit);
 
 	$rules['retagcatbutton'] = $post['basetype'] == 'Q' && (qa_using_tags() || qa_using_categories())
@@ -171,7 +172,7 @@ function qa_page_q_post_rules($post, $parentpost = null, $siblingposts = null, $
 
 	$rules['aselectable'] = $post['type'] == 'Q' && !qa_user_permit_error($rules['isbyuser'] ? null : 'permit_select_a', null, $userlevel, true, $userfields);
 
-	$rules['flagbutton'] = qa_opt('flagging_of_posts') && !$rules['isbyuser'] && !$post['hidden'] && !$rules['queued']
+	$rules['flagbutton'] = qa_opt('flagging_of_posts') && !$rules['isbyuser'] && !$post['hidden'] && !$post['queued']
 		&& !@$post['userflag'] && !in_array($permiterror_flag, $button_errors);
 	$rules['flagtohide'] = $rules['flagbutton'] && !$permiterror_flag && ($post['flagcount'] + 1) >= qa_opt('flagging_hide_after');
 	$rules['unflaggable'] = @$post['userflag'] && !$post['hidden'];
@@ -182,14 +183,14 @@ function qa_page_q_post_rules($post, $parentpost = null, $siblingposts = null, $
 	$notclosedbyother = !($rules['closed'] && isset($post['closedbyid']) && !$rules['authorlast']);
 	$nothiddenbyother = !($post['hidden'] && !$rules['authorlast']);
 
-	$rules['closeable'] = qa_opt('allow_close_questions') && $post['type'] == 'Q' && !$rules['closed'] && !$permiterror_close_open;
+	$rules['closeable'] = qa_opt('allow_close_questions') && $post['type'] == 'Q' && !$rules['closed'] && $permiterror_close_open === false;
 	// cannot reopen a question if it's been hidden, or if it was closed by someone else and you don't have global closing permissions
-	$rules['reopenable'] = $rules['closed'] && isset($post['closedbyid']) && !$permiterror_close_open && !$post['hidden']
+	$rules['reopenable'] = $rules['closed'] && isset($post['closedbyid']) && $permiterror_close_open === false && !$post['hidden']
 		&& ($notclosedbyother || !qa_user_permit_error('permit_close_q', null, $userlevel, true, $userfields));
 
-	$rules['moderatable'] = $rules['queued'] && !$permiterror_moderate;
+	$rules['moderatable'] = $post['queued'] && !$permiterror_moderate;
 	// cannot hide a question if it was closed by someone else and you don't have global hiding permissions
-	$rules['hideable'] = !$post['hidden'] && ($rules['isbyuser'] || !$rules['queued']) && !$permiterror_hide_show_self
+	$rules['hideable'] = !$post['hidden'] && ($rules['isbyuser'] || !$post['queued']) && !$permiterror_hide_show_self
 		&& ($notclosedbyother || !$permiterror_hide_show);
 	// means post can be reshown immediately without checking whether it needs moderation
 	$rules['reshowimmed'] = $post['hidden'] && !$permiterror_hide_show;
@@ -959,7 +960,7 @@ function qa_page_q_add_a_form(&$qa_content, $formid, $captchareason, $question, 
 					'label' => qa_lang_html('main/cancel_button'),
 				);
 
-			if (!qa_is_logged_in())
+			if (!qa_is_logged_in() && qa_opt('allow_anonymous_naming'))
 				qa_set_up_name_field($qa_content, $form['fields'], @$in['name'], 'a_');
 
 			qa_set_up_notify_fields($qa_content, $form['fields'], 'A', qa_get_logged_in_email(),
@@ -971,23 +972,25 @@ function qa_page_q_add_a_form(&$qa_content, $formid, $captchareason, $question, 
 				$captchaloadscript = qa_set_up_captcha_field($qa_content, $form['fields'], $errors, qa_captcha_reason_note($captchareason));
 
 				if (strlen($captchaloadscript))
-					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_show=function() { ' . $captchaloadscript . ' };';
+					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_show = function() { ' . $captchaloadscript . ' };';
 			}
 
 			if (!$loadnow) {
 				if (method_exists($editor, 'load_script'))
-					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_load=function() { ' . $editor->load_script('a_content') . ' };';
+					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_load = function() { ' . $editor->load_script('a_content') . ' };';
 
 				$form['buttons']['cancel']['tags'] .= ' onclick="return qa_toggle_element();"';
 			}
 
 			if (!$formrequested) {
 				if (method_exists($editor, 'focus_script'))
-					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_focus=function() { ' . $editor->focus_script('a_content') . ' };';
+					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_focus = function() { ' . $editor->focus_script('a_content') . ' };';
 			}
 
-			if (count($onloads))
+			if (count($onloads)) {
 				$qa_content['script_onloads'][] = $onloads;
+			}
+
 			break;
 	}
 
@@ -1104,7 +1107,7 @@ function qa_page_q_add_c_form(&$qa_content, $question, $parent, $formid, $captch
 			if (!strlen($custom))
 				unset($form['fields']['custom']);
 
-			if (!qa_is_logged_in())
+			if (!qa_is_logged_in() && qa_opt('allow_anonymous_naming'))
 				qa_set_up_name_field($qa_content, $form['fields'], @$in['name'], $prefix);
 
 			qa_set_up_notify_fields($qa_content, $form['fields'], 'C', qa_get_logged_in_email(),
@@ -1116,20 +1119,23 @@ function qa_page_q_add_c_form(&$qa_content, $question, $parent, $formid, $captch
 				$captchaloadscript = qa_set_up_captcha_field($qa_content, $form['fields'], $errors, qa_captcha_reason_note($captchareason));
 
 				if (strlen($captchaloadscript))
-					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_show=function() { ' . $captchaloadscript . ' };';
+					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_show = function() { ' . $captchaloadscript . ' };';
 			}
 
 			if (!$loadfocusnow) {
 				if (method_exists($editor, 'load_script'))
-					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_load=function() { ' . $editor->load_script($prefix . 'content') . ' };';
+					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_load = function() { ' . $editor->load_script($prefix . 'content') . ' };';
 				if (method_exists($editor, 'focus_script'))
-					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_focus=function() { ' . $editor->focus_script($prefix . 'content') . ' };';
+					$onloads[] = 'document.getElementById(' . qa_js($formid) . ').qa_focus = function() { ' . $editor->focus_script($prefix . 'content') . ' };';
 
 				$form['buttons']['cancel']['tags'] .= ' onclick="return qa_toggle_element()"';
 			}
 
-			if (count($onloads))
+			if (count($onloads)) {
 				$qa_content['script_onloads'][] = $onloads;
+			}
+
+			break;
 	}
 
 	$form['id'] = $formid;

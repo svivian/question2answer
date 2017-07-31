@@ -64,9 +64,16 @@ qa_initialize_constants_2();
 qa_initialize_modularity();
 qa_register_core_modules();
 
+qa_initialize_predb_plugins();
 require_once QA_INCLUDE_DIR . 'qa-db.php';
+qa_db_allow_connect();
 
-qa_initialize_plugins();
+// $qa_autoconnect defaults to true so that optional plugins will load for external code. Q2A core
+// code sets $qa_autoconnect to false so that we can use custom fail handlers.
+if (!isset($qa_autoconnect) || $qa_autoconnect !== false) {
+	qa_db_connect('qa_page_db_fail_handler');
+	qa_initialize_postdb_plugins();
+}
 
 
 // Version comparison functions
@@ -369,20 +376,55 @@ function qa_register_core_modules()
 
 
 /**
- * Load all plugins. They are split into two groups: plugins loaded before database is available, and those loaded afterward.
+ * Load plugins before database is available. Generally this includes database overrides and
+ * process plugins that run early in the request lifecycle.
  */
-function qa_initialize_plugins()
+function qa_initialize_predb_plugins()
 {
-	$pluginManager = new Q2A_Plugin_PluginManager();
-	$pluginManager->readAllPluginMetadatas();
+	global $qa_pluginManager;
+	$qa_pluginManager = new Q2A_Plugin_PluginManager();
+	$qa_pluginManager->readAllPluginMetadatas();
 
-	$pluginManager->loadPluginsBeforeDbInit();
+	$qa_pluginManager->loadPluginsBeforeDbInit();
 	qa_load_override_files();
+}
 
-	qa_db_allow_connect();
 
-	$pluginManager->loadPluginsAfterDbInit();
+/**
+ * Load plugins after database is available. Plugins loaded here are able to be disabled in admin.
+ */
+function qa_initialize_postdb_plugins()
+{
+	global $qa_pluginManager;
+
+	require_once QA_INCLUDE_DIR . 'app/options.php';
+	qa_preload_options();
+
+	$qa_pluginManager->loadPluginsAfterDbInit();
 	qa_load_override_files();
+}
+
+
+/**
+ * Standard database failure handler function which bring up the install/repair/upgrade page
+ * @param $type
+ * @param int $errno
+ * @param string $error
+ * @param string $query
+ * @return mixed
+ */
+function qa_page_db_fail_handler($type, $errno = null, $error = null, $query = null)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	$pass_failure_type = $type;
+	$pass_failure_errno = $errno;
+	$pass_failure_error = $error;
+	$pass_failure_query = $query;
+
+	require_once QA_INCLUDE_DIR . 'qa-install.php';
+
+	qa_exit('error');
 }
 
 
@@ -1242,11 +1284,13 @@ function qa_post_limit_exceeded()
 */
 function convert_to_bytes($unit, $value)
 {
+	$value = (int) $value;
+
 	switch (strtolower($unit)) {
 		case 'g':
-			return $value * 1073741824;
+			return $value * pow(1024, 3);
 		case 'm':
-			return $value * 1048576;
+			return $value * pow(1024, 2);
 		case 'k':
 			return $value * 1024;
 		default:

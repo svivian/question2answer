@@ -32,6 +32,7 @@ header('Content-Type: text/plain; charset=utf-8');
 
 // Load the Q2A base file which sets up a bunch of crucial functions
 
+$qa_autoconnect = false;
 require 'qa-base.php';
 
 qa_report_process_stage('init_ajax');
@@ -79,6 +80,7 @@ $operation = qa_post_text('qa_operation');
 
 if (isset($routing[$operation])) {
 	qa_db_connect('qa_ajax_db_fail_handler');
+	qa_initialize_postdb_plugins();
 
 	qa_initialize_buffering();
 	require QA_INCLUDE_DIR . 'ajax/' . $routing[$operation];

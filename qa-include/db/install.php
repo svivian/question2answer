@@ -25,7 +25,7 @@ if (!defined('QA_VERSION')) { // don't allow this page to be requested directly 
 	exit;
 }
 
-define('QA_DB_VERSION_CURRENT', 64);
+define('QA_DB_VERSION_CURRENT', 66);
 
 
 /**
@@ -100,7 +100,7 @@ function qa_db_table_definitions()
 		'users' => array(
 			'userid' => $useridcoltype . ' NOT NULL AUTO_INCREMENT',
 			'created' => 'DATETIME NOT NULL',
-			'createip' => 'VARBINARY(16) NOT NULL', // INET_ATON of IP address when created
+			'createip' => 'VARBINARY(16) NOT NULL', // INET6_ATON of IP address when created
 			'email' => 'VARCHAR(' . QA_DB_MAX_EMAIL_LENGTH . ') NOT NULL',
 			'handle' => 'VARCHAR(' . QA_DB_MAX_HANDLE_LENGTH . ') NOT NULL', // username
 			'avatarblobid' => 'BIGINT UNSIGNED', // blobid of stored avatar
@@ -111,9 +111,9 @@ function qa_db_table_definitions()
 			'passhash' => 'VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL', // password_hash
 			'level' => 'TINYINT UNSIGNED NOT NULL', // basic, editor, admin, etc...
 			'loggedin' => 'DATETIME NOT NULL', // time of last login
-			'loginip' => 'VARBINARY(16) NOT NULL', // INET_ATON of IP address of last login
+			'loginip' => 'VARBINARY(16) NOT NULL', // INET6_ATON of IP address of last login
 			'written' => 'DATETIME', // time of last write action done by user
-			'writeip' => 'VARBINARY(16)', // INET_ATON of IP address of last write action done by user
+			'writeip' => 'VARBINARY(16)', // INET6_ATON of IP address of last write action done by user
 			'emailcode' => 'CHAR(8) CHARACTER SET ascii NOT NULL DEFAULT \'\'', // for email confirmation or password reset
 			'sessioncode' => 'CHAR(8) CHARACTER SET ascii NOT NULL DEFAULT \'\'', // for comparing against session cookie in browser
 			'sessionsource' => 'VARCHAR (16) CHARACTER SET ascii DEFAULT \'\'', // e.g. facebook, openid, etc...
@@ -123,7 +123,7 @@ function qa_db_table_definitions()
 			'KEY email (email)',
 			'KEY handle (handle)',
 			'KEY level (level)',
-			'kEY created (created, level, flags)',
+			'KEY created (created, level, flags)',
 		),
 
 		'userlogins' => array(
@@ -227,9 +227,9 @@ function qa_db_table_definitions()
 		'cookies' => array(
 			'cookieid' => 'BIGINT UNSIGNED NOT NULL',
 			'created' => 'DATETIME NOT NULL',
-			'createip' => 'VARBINARY(16) NOT NULL', // INET_ATON of IP address when cookie created
+			'createip' => 'VARBINARY(16) NOT NULL', // INET6_ATON of IP address when cookie created
 			'written' => 'DATETIME', // time of last write action done by anon user with cookie
-			'writeip' => 'VARBINARY(16)', // INET_ATON of IP address of last write action done by anon user with cookie
+			'writeip' => 'VARBINARY(16)', // INET6_ATON of IP address of last write action done by anon user with cookie
 			'PRIMARY KEY (cookieid)',
 		),
 
@@ -293,13 +293,13 @@ function qa_db_table_definitions()
 			'closedbyid' => 'INT UNSIGNED', // not null means question is closed
 			'userid' => $useridcoltype, // which user wrote it
 			'cookieid' => 'BIGINT UNSIGNED', // which cookie wrote it, if an anonymous post
-			'createip' => 'VARBINARY(16)', // INET_ATON of IP address used to create the post
+			'createip' => 'VARBINARY(16)', // INET6_ATON of IP address used to create the post
 			'lastuserid' => $useridcoltype, // which user last modified it
-			'lastip' => 'VARBINARY(16)', // INET_ATON of IP address which last modified the post
+			'lastip' => 'VARBINARY(16)', // INET6_ATON of IP address which last modified the post
 			'upvotes' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 0',
 			'downvotes' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 0',
 			'netvotes' => 'SMALLINT NOT NULL DEFAULT 0',
-			'lastviewip' => 'VARBINARY(16)', // INET_ATON of IP address which last viewed the post
+			'lastviewip' => 'VARBINARY(16)', // INET6_ATON of IP address which last viewed the post
 			'views' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'hotness' => 'FLOAT',
 			'flagcount' => 'TINYINT UNSIGNED NOT NULL DEFAULT 0',
@@ -348,7 +348,7 @@ function qa_db_table_definitions()
 			'filename' => 'VARCHAR(' . QA_DB_MAX_BLOB_FILE_NAME_LENGTH . ')', // name of source file (if appropriate)
 			'userid' => $useridcoltype, // which user created it
 			'cookieid' => 'BIGINT UNSIGNED', // which cookie created it
-			'createip' => 'VARBINARY(16)', // INET_ATON of IP address that created it
+			'createip' => 'VARBINARY(16)', // INET6_ATON of IP address that created it
 			'created' => 'DATETIME', // when it was created
 			'PRIMARY KEY (blobid)',
 		),
@@ -400,7 +400,7 @@ function qa_db_table_definitions()
 			'wordid' => 'INT UNSIGNED NOT NULL',
 			'postcreated' => 'DATETIME NOT NULL', // created time of post (copied here for tag page's list of recent questions)
 			'KEY postid (postid)',
-			'KEY wordid (wordid,postcreated)',
+			'KEY wordid (wordid, postcreated)',
 			'CONSTRAINT ^posttags_ibfk_1 FOREIGN KEY (postid) REFERENCES ^posts(postid) ON DELETE CASCADE',
 			'CONSTRAINT ^posttags_ibfk_2 FOREIGN KEY (wordid) REFERENCES ^words(wordid)',
 		),
@@ -410,8 +410,11 @@ function qa_db_table_definitions()
 			'userid' => $useridcoltype . ' NOT NULL',
 			'vote' => 'TINYINT NOT NULL', // -1, 0 or 1
 			'flag' => 'TINYINT NOT NULL', // 0 or 1
+			'votecreated' => 'DATETIME', // time of first vote
+			'voteupdated' => 'DATETIME', // time of last vote change
 			'UNIQUE userid (userid, postid)',
 			'KEY postid (postid)',
+			'KEY voted (votecreated, voteupdated)',
 			'CONSTRAINT ^uservotes_ibfk_1 FOREIGN KEY (postid) REFERENCES ^posts(postid) ON DELETE CASCADE',
 		),
 
@@ -429,8 +432,11 @@ function qa_db_table_definitions()
 			'qdownvotes' => 'MEDIUMINT NOT NULL DEFAULT 0', // number of questions the user has voted down
 			'aupvotes' => 'MEDIUMINT NOT NULL DEFAULT 0', // number of answers the user has voted up
 			'adownvotes' => 'MEDIUMINT NOT NULL DEFAULT 0', // number of answers the user has voted down
+			'cupvotes' => 'MEDIUMINT NOT NULL DEFAULT 0', // number of comments the user has voted up
+			'cdownvotes' => 'MEDIUMINT NOT NULL DEFAULT 0', // number of comments the user has voted down
 			'qvoteds' => 'INT NOT NULL DEFAULT 0', // points from votes on this user's questions (applying per-question limits), before final multiple
 			'avoteds' => 'INT NOT NULL DEFAULT 0', // points from votes on this user's answers (applying per-answer limits), before final multiple
+			'cvoteds' => 'INT NOT NULL DEFAULT 0', // points from votes on this user's comments (applying per-comment limits), before final multiple
 			'upvoteds' => 'INT NOT NULL DEFAULT 0', // number of up votes received on this user's questions or answers
 			'downvoteds' => 'INT NOT NULL DEFAULT 0', // number of down votes received on this user's questions or answers
 			'bonus' => 'INT NOT NULL DEFAULT 0', // bonus assigned by administrator to a user
@@ -449,7 +455,7 @@ function qa_db_table_definitions()
 		// most columns in iplimits have the same meaning as those in userlimits
 
 		'iplimits' => array(
-			'ip' => 'VARBINARY(16) NOT NULL', // INET_ATON of IP address
+			'ip' => 'VARBINARY(16) NOT NULL', // INET6_ATON of IP address
 			'action' => 'CHAR(1) CHARACTER SET ascii NOT NULL',
 			'period' => 'INT UNSIGNED NOT NULL',
 			'count' => 'SMALLINT UNSIGNED NOT NULL',
@@ -468,7 +474,7 @@ function qa_db_table_definitions()
 			'content' => 'MEDIUMBLOB NOT NULL',
 			'created' => 'DATETIME NOT NULL',
 			'lastread' => 'DATETIME NOT NULL',
-			'PRIMARY KEY (type,cacheid)',
+			'PRIMARY KEY (type, cacheid)',
 			'KEY (lastread)',
 		),
 
@@ -721,25 +727,25 @@ function qa_db_default_userfields_sql()
 	$profileFields = array(
 		array(
 			'title' => 'name',
-			'position' => 0,
-			'flags' => 0,
-			'permit' => QA_PERMIT_ALL,
-		),
-		array(
-			'title' => 'location',
 			'position' => 1,
 			'flags' => 0,
 			'permit' => QA_PERMIT_ALL,
 		),
 		array(
-			'title' => 'website',
+			'title' => 'location',
 			'position' => 2,
+			'flags' => 0,
+			'permit' => QA_PERMIT_ALL,
+		),
+		array(
+			'title' => 'website',
+			'position' => 3,
 			'flags' => QA_FIELD_FLAGS_LINK_URL,
 			'permit' => QA_PERMIT_ALL,
 		),
 		array(
 			'title' => 'about',
-			'position' => 3,
+			'position' => 4,
 			'flags' => QA_FIELD_FLAGS_MULTI_LINE,
 			'permit' => QA_PERMIT_ALL,
 		),
@@ -960,7 +966,7 @@ function qa_db_upgrade_tables()
 					'content' => $definitions['cache']['content'],
 					'created' => $definitions['cache']['created'],
 					'lastread' => $definitions['cache']['lastread'],
-					'PRIMARY KEY (type,cacheid)',
+					'PRIMARY KEY (type, cacheid)',
 					'KEY (lastread)',
 				))); // hard-code list of columns and indexes to ensure we ignore any added at a later stage
 
@@ -1558,6 +1564,24 @@ function qa_db_upgrade_tables()
 				$pluginManager->setEnabledPlugins($allPlugins);
 				break;
 
+			case 65:
+				qa_db_upgrade_query('ALTER TABLE ^uservotes ADD COLUMN votecreated ' . $definitions['uservotes']['votecreated'] . ' AFTER flag');
+				qa_db_upgrade_query('ALTER TABLE ^uservotes ADD COLUMN voteupdated ' . $definitions['uservotes']['voteupdated'] . ' AFTER votecreated');
+				qa_db_upgrade_query('ALTER TABLE ^uservotes ADD KEY voted (votecreated, voteupdated)');
+				qa_db_upgrade_query($locktablesquery);
+
+				// for old votes, set a default date of when that post was made
+				qa_db_upgrade_query('UPDATE ^uservotes, ^posts SET ^uservotes.votecreated=^posts.created WHERE ^uservotes.postid=^posts.postid AND (^uservotes.vote != 0 OR ^uservotes.flag=0)');
+				break;
+
+			case 66:
+				$newColumns = array(
+					'ADD COLUMN cupvotes ' . $definitions['userpoints']['cupvotes'] . ' AFTER adownvotes',
+					'ADD COLUMN cdownvotes ' . $definitions['userpoints']['cdownvotes'] . ' AFTER cupvotes',
+					'ADD COLUMN cvoteds ' . $definitions['userpoints']['cvoteds'] . ' AFTER avoteds',
+				);
+				qa_db_upgrade_query('ALTER TABLE ^userpoints ' . implode(', ', $newColumns));
+				break;
 
 			// Up to here: Version 1.8 alpha
 		}

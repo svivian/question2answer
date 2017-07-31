@@ -137,8 +137,10 @@ $optiontype = array(
 	'show_full_date_days' => 'number',
 	'smtp_port' => 'number',
 
+	'allow_anonymous_naming' => 'checkbox',
 	'allow_change_usernames' => 'checkbox',
 	'allow_close_questions' => 'checkbox',
+	'allow_close_own_questions' => 'checkbox',
 	'allow_login_email_only' => 'checkbox',
 	'allow_multi_answers' => 'checkbox',
 	'allow_private_messages' => 'checkbox',
@@ -229,6 +231,7 @@ $optiontype = array(
 	'minify_html' => 'checkbox',
 	'votes_separated' => 'checkbox',
 	'voting_on_as' => 'checkbox',
+	'voting_on_cs' => 'checkbox',
 	'voting_on_q_page_only' => 'checkbox',
 	'voting_on_qs' => 'checkbox',
 
@@ -320,7 +323,7 @@ switch ($adminsection) {
 			require_once QA_INCLUDE_DIR . 'util/image.php';
 
 			array_push($showoptions, 'show_custom_register', 'custom_register', 'show_register_terms', 'register_terms', 'show_notice_welcome', 'notice_welcome', 'show_custom_welcome', 'custom_welcome',
-				'', 'allow_login_email_only', 'allow_change_usernames', 'register_notify_admin', 'suspend_register_users',
+				'', 'allow_login_email_only', 'allow_change_usernames', 'register_notify_admin', 'suspend_register_users', '', 'block_bad_usernames',
 				'', 'allow_private_messages', 'show_message_history', 'page_size_pms', 'allow_user_walls', 'page_size_wall',
 				'', 'avatar_allow_gravatar');
 
@@ -387,7 +390,7 @@ switch ($adminsection) {
 		$subtitle = 'admin/viewing_title';
 		$showoptions = array(
 			'q_urls_title_length', 'q_urls_remove_accents', 'do_count_q_views', 'show_view_counts', 'show_view_count_q_page', '',
-			'voting_on_qs', 'voting_on_q_page_only', 'voting_on_as', 'votes_separated', '',
+			'voting_on_qs', 'voting_on_q_page_only', 'voting_on_as', 'voting_on_cs', 'votes_separated', '',
 			'show_url_links', 'links_in_new_window', 'show_when_created', 'show_full_date_days'
 		);
 
@@ -464,7 +467,7 @@ switch ($adminsection) {
 
 		$subtitle = 'admin/posting_title';
 
-		$showoptions = array('do_close_on_select', 'allow_close_questions', 'allow_self_answer', 'allow_multi_answers', 'follow_on_as', 'comment_on_qs', 'comment_on_as', '');
+		$showoptions = array('do_close_on_select', 'allow_close_questions', 'allow_close_own_questions', 'allow_self_answer', 'allow_multi_answers', 'follow_on_as', 'comment_on_qs', 'comment_on_as', 'allow_anonymous_naming', '');
 
 		if (count(qa_list_modules('editor')) > 1)
 			array_push($showoptions, 'editor_for_qs', 'editor_for_as', 'editor_for_cs', '');
@@ -486,6 +489,7 @@ switch ($adminsection) {
 		$formstyle = 'wide';
 
 		$checkboxtodisplay = array(
+			'allow_close_own_questions' => 'option_allow_close_questions',
 			'editor_for_cs' => 'option_comment_on_qs || option_comment_on_as',
 			'custom_ask' => 'option_show_custom_ask',
 			'extra_field_prompt' => 'option_extra_field_active',
@@ -610,7 +614,7 @@ switch ($adminsection) {
 
 		$showoptions[] = '';
 
-		if (qa_opt('voting_on_qs') || qa_opt('voting_on_as'))
+		if (qa_opt('voting_on_qs') || qa_opt('voting_on_as') || qa_opt('voting_on_cs'))
 			array_push($showoptions, 'max_rate_ip_votes', 'max_rate_user_votes');
 
 		array_push($showoptions, 'max_rate_ip_flags', 'max_rate_user_flags', 'max_rate_ip_uploads', 'max_rate_user_uploads');
@@ -647,7 +651,7 @@ switch ($adminsection) {
 		$subtitle = 'admin/caching_title';
 		$formstyle = 'wide';
 
-		$showoptions = array('caching_enabled', 'caching_q_start', 'caching_q_time', 'caching_qlist_time', 'caching_catwidget_time');
+		$showoptions = array('caching_enabled', 'caching_driver', 'caching_q_start', 'caching_q_time', 'caching_qlist_time', 'caching_catwidget_time');
 
 		break;
 
@@ -744,6 +748,7 @@ else {
 						break;
 
 					case 'block_bad_words':
+					case 'block_bad_usernames':
 						require_once QA_INCLUDE_DIR . 'util/string.php';
 						$optionvalue = implode(' , ', qa_block_words_explode($optionvalue));
 						break;
@@ -1240,6 +1245,7 @@ foreach ($showoptions as $optionname) {
 				break;
 
 			case 'block_bad_words':
+			case 'block_bad_usernames':
 				$optionfield['style'] = 'tall';
 				$optionfield['rows'] = 4;
 				$optionfield['note'] = qa_lang_html('admin/block_words_note');
@@ -1347,6 +1353,7 @@ foreach ($showoptions as $optionname) {
 			case 'permit_post_c':
 			case 'permit_vote_q':
 			case 'permit_vote_a':
+			case 'permit_vote_c':
 			case 'permit_vote_down':
 			case 'permit_edit_q':
 			case 'permit_retag_cat':
@@ -1390,7 +1397,7 @@ foreach ($showoptions as $optionname) {
 					$narrowest = QA_PERMIT_MODERATORS;
 				elseif ($optionname == 'permit_post_c' || $optionname == 'permit_edit_q' || $optionname == 'permit_retag_cat' || $optionname == 'permit_edit_a' || $optionname == 'permit_flag')
 					$narrowest = QA_PERMIT_EDITORS;
-				elseif ($optionname == 'permit_vote_q' || $optionname == 'permit_vote_a' || $optionname == 'permit_post_wall')
+				elseif ($optionname == 'permit_vote_q' || $optionname == 'permit_vote_a' || $optionname == 'permit_vote_c' || $optionname == 'permit_post_wall')
 					$narrowest = QA_PERMIT_APPROVED_POINTS;
 				elseif ($optionname == 'permit_delete_hidden' || $optionname == 'permit_edit_silent')
 					$narrowest = QA_PERMIT_ADMINS;
@@ -1415,6 +1422,7 @@ foreach ($showoptions as $optionname) {
 			case 'permit_post_c_points':
 			case 'permit_vote_q_points':
 			case 'permit_vote_a_points':
+			case 'permit_vote_c_points':
 			case 'permit_vote_down_points':
 			case 'permit_flag_points':
 			case 'permit_edit_q_points':
@@ -1544,6 +1552,13 @@ foreach ($showoptions as $optionname) {
 
 			case 'mailing_per_minute':
 				$optionfield['suffix'] = qa_lang_html('admin/emails_per_minute');
+				break;
+
+			case 'caching_driver':
+				qa_optionfield_make_select($optionfield, array(
+					'filesystem' => qa_lang_html('options/caching_filesystem'),
+					'memcached' => qa_lang_html('options/caching_memcached'),
+				), $value, 'filesystem');
 				break;
 
 			case 'caching_q_time':
@@ -1785,8 +1800,47 @@ switch ($adminsection) {
 		break;
 
 	case 'caching':
-		$cacheManager = Q2A_Storage_CacheManager::getInstance();
-		$qa_content['error'] = $cacheManager->getError();
+		$cacheDriver = Q2A_Storage_CacheFactory::getCacheDriver();
+		$qa_content['error'] = $cacheDriver->getError();
+		$cacheStats = $cacheDriver->getStats();
+
+		$qa_content['form_2'] = array(
+			'tags' => 'method="post" action="' . qa_path_html('admin/recalc') . '"',
+
+			'title' => qa_lang_html('admin/caching_cleanup'),
+
+			'style' => 'wide',
+
+			'fields' => array(
+				'cache_files' => array(
+					'type' => 'static',
+					'label' => qa_lang_html('admin/caching_num_items'),
+					'value' => qa_html(qa_format_number($cacheStats['files'])),
+				),
+				'cache_size' => array(
+					'type' => 'static',
+					'label' => qa_lang_html('admin/caching_space_used'),
+					'value' => qa_html(qa_format_number($cacheStats['size'] / 1048576, 1) . ' MB'),
+				),
+			),
+
+			'buttons' => array(
+				'delete_expired' => array(
+					'label' => qa_lang_html('admin/caching_delete_expired'),
+					'tags' => 'name="docachetrim" onclick="return qa_recalc_click(this.name, this, ' . qa_js(qa_lang_html('admin/delete_stop')) . ', \'cachetrim_note\');"',
+					'note' => '<span id="cachetrim_note"></span>',
+				),
+				'delete_all' => array(
+					'label' => qa_lang_html('admin/caching_delete_all'),
+					'tags' => 'name="docacheclear" onclick="return qa_recalc_click(this.name, this, ' . qa_js(qa_lang_html('admin/delete_stop')) . ', \'cacheclear_note\');"',
+					'note' => '<span id="cacheclear_note"></span>',
+				),
+			),
+
+			'hidden' => array(
+				'code' => qa_get_form_security_code('admin/recalc'),
+			),
+		);
 		break;
 }
 

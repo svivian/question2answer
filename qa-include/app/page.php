@@ -33,29 +33,6 @@ require_once QA_INCLUDE_DIR . 'db/selects.php';
 
 
 /**
- * Standard database failure handler function which bring up the install/repair/upgrade page
- * @param $type
- * @param int $errno
- * @param string $error
- * @param string $query
- * @return mixed
- */
-function qa_page_db_fail_handler($type, $errno = null, $error = null, $query = null)
-{
-	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
-
-	$pass_failure_type = $type;
-	$pass_failure_errno = $errno;
-	$pass_failure_error = $error;
-	$pass_failure_query = $query;
-
-	require_once QA_INCLUDE_DIR . 'qa-install.php';
-
-	qa_exit('error');
-}
-
-
-/**
  * Queue any pending requests which are required independent of which page will be shown
  */
 function qa_page_queue_pending()
@@ -337,15 +314,19 @@ function qa_output_content($qa_content)
 
 	if (isset($qa_content['script_rel'])) {
 		$uniquerel = array_unique($qa_content['script_rel']); // remove any duplicates
-		foreach ($uniquerel as $script_rel)
+		foreach ($uniquerel as $script_rel) {
 			$script[] = '<script src="' . qa_html(qa_path_to_root() . $script_rel) . '"></script>';
+		}
 	}
 
 	if (isset($qa_content['script_src'])) {
 		$uniquesrc = array_unique($qa_content['script_src']); // remove any duplicates
-		foreach ($uniquesrc as $script_src)
+		foreach ($uniquesrc as $script_src) {
 			$script[] = '<script src="' . qa_html($script_src) . '"></script>';
+		}
 	}
+
+	// JS onloads must come after jQuery is loaded
 
 	if (isset($qa_content['focusid'])) {
 		$qa_content['script_onloads'][] = array(
@@ -353,20 +334,19 @@ function qa_output_content($qa_content)
 		);
 	}
 
-	// JS onloads must come after jQuery is loaded
-
-	$script[] = '<script>';
 	if (isset($qa_content['script_onloads'])) {
+		$script[] = '<script>';
 		$script[] = '$(window).load(function() {';
 
 		foreach ($qa_content['script_onloads'] as $scriptonload) {
-			foreach ((array)$scriptonload as $scriptline)
+			foreach ((array)$scriptonload as $scriptline) {
 				$script[] = "\t" . $scriptline;
+			}
 		}
 
 		$script[] = '});';
+		$script[] = '</script>';
 	}
-	$script[] = '</script>';
 
 	if (!isset($qa_content['script'])) {
 		$qa_content['script'] = array();
@@ -689,7 +669,11 @@ function qa_content_prepare($voting = false, $categoryids = null)
 
 	foreach ($widgets as $widget) {
 		$tagstring = ',' . $widget['tags'] . ',';
-		if (strpos($tagstring, ",$qa_template,") !== false || strpos($tagstring, ',all,') !== false) {
+		$showOnTmpl = strpos($tagstring, ",$qa_template,") !== false || strpos($tagstring, ',all,') !== false;
+		// special case for user pages
+		$showOnUser = strpos($tagstring, ',user,') !== false && preg_match('/^user(-.+)?$/', $qa_template) === 1;
+
+		if ($showOnTmpl || $showOnUser) {
 			// widget has been selected for display on this template
 			$region = @$regioncodes[substr($widget['place'], 0, 1)];
 			$place = @$placecodes[substr($widget['place'], 1, 2)];
@@ -814,7 +798,7 @@ function qa_content_prepare($voting = false, $categoryids = null)
 	}
 
 	$qa_content['script_rel'] = array('qa-content/jquery-1.11.3.min.js');
-	$qa_content['script_rel'][] = 'qa-content/qa-page.js?' . QA_VERSION;
+	$qa_content['script_rel'][] = 'qa-content/qa-global.js?' . QA_VERSION;
 
 	if ($voting)
 		$qa_content['error'] = @$qa_page_error_html;

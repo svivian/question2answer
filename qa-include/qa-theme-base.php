@@ -411,8 +411,8 @@ class qa_html_theme_base
 	{
 		$this->output(
 			'<script>',
-			"var b=document.getElementsByTagName('body')[0];",
-			"b.className=b.className.replace('qa-body-js-off', 'qa-body-js-on');",
+			"var b = document.getElementsByTagName('body')[0];",
+			"b.className = b.className.replace('qa-body-js-off', 'qa-body-js-on');",
 			'</script>'
 		);
 	}
@@ -1804,8 +1804,9 @@ class qa_html_theme_base
 		if ($post['vote_view'] == 'updown') {
 			$this->output_split($post['upvotes_view'], 'qa-upvote-count');
 			$this->output_split($post['downvotes_view'], 'qa-downvote-count');
-		} else
+		} else {
 			$this->output_split($post['netvotes_view'], 'qa-netvote-count');
+		}
 
 		$this->output('</div>');
 	}
@@ -2399,6 +2400,7 @@ class qa_html_theme_base
 
 		$this->output('<div class="qa-c-list-item ' . $extraclass . '" ' . @$c_item['tags'] . '>');
 
+		$this->voting($c_item);
 		$this->c_item_main($c_item);
 		$this->c_item_clear();
 

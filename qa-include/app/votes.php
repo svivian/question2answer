@@ -45,39 +45,62 @@ function qa_vote_error_html($post, $vote, $userid, $topage)
 	require_once QA_INCLUDE_DIR . 'app/users.php';
 	require_once QA_INCLUDE_DIR . 'app/limits.php';
 
-	if (is_array($post) && ($post['basetype'] == 'Q' || $post['basetype'] == 'A') &&
-		qa_opt(($post['basetype'] == 'Q') ? 'voting_on_qs' : 'voting_on_as') &&
-		(!isset($post['userid']) || !isset($userid) || $post['userid'] != $userid)
-	) {
-		$permiterror = qa_user_post_permit_error(($post['basetype'] == 'Q') ? 'permit_vote_q' : 'permit_vote_a', $post, QA_LIMIT_VOTES);
+	if ($post['hidden']) {
+		return qa_lang_html('main/vote_disabled_hidden');
+	}
+	if ($post['queued']) {
+		return qa_lang_html('main/vote_disabled_queued');
+	}
 
-		$errordownonly = !$permiterror && $vote < 0;
-		if ($errordownonly)
-			$permiterror = qa_user_post_permit_error('permit_vote_down', $post);
+	switch($post['basetype'])
+	{
+		case 'Q':
+			$allowVoting = qa_opt('voting_on_qs');
+			break;
+		case 'A':
+			$allowVoting = qa_opt('voting_on_as');
+			break;
+		case 'C':
+			$allowVoting = qa_opt('voting_on_cs');
+			break;
+		default:
+			$allowVoting = false;
+			break;
+	}
 
-		switch ($permiterror) {
-			case 'login':
-				return qa_insert_login_links(qa_lang_html('main/vote_must_login'), $topage);
-				break;
+	if (!$allowVoting || (isset($post['userid']) && isset($userid) && $post['userid'] == $userid)) {
+		// voting option should not have been presented (but could happen due to options change)
+		return qa_lang_html('main/vote_not_allowed');
+	}
 
-			case 'confirm':
-				return qa_insert_login_links(qa_lang_html($errordownonly ? 'main/vote_down_must_confirm' : 'main/vote_must_confirm'), $topage);
-				break;
+	$permiterror = qa_user_post_permit_error(($post['basetype'] == 'Q') ? 'permit_vote_q' : 'permit_vote_a', $post, QA_LIMIT_VOTES);
 
-			case 'limit':
-				return qa_lang_html('main/vote_limit');
-				break;
+	$errordownonly = !$permiterror && $vote < 0;
+	if ($errordownonly) {
+		$permiterror = qa_user_post_permit_error('permit_vote_down', $post);
+	}
 
-			default:
-				return qa_lang_html('users/no_permission');
-				break;
+	switch ($permiterror) {
+		case false:
+			return false;
+			break;
 
-			case false:
-				return false;
-		}
+		case 'login':
+			return qa_insert_login_links(qa_lang_html('main/vote_must_login'), $topage);
+			break;
 
-	} else
-		return qa_lang_html('main/vote_not_allowed'); // voting option should not have been presented (but could happen due to options change)
+		case 'confirm':
+			return qa_insert_login_links(qa_lang_html($errordownonly ? 'main/vote_down_must_confirm' : 'main/vote_must_confirm'), $topage);
+			break;
+
+		case 'limit':
+			return qa_lang_html('main/vote_limit');
+			break;
+
+		default:
+			return qa_lang_html('users/no_permission');
+			break;
+	}
 }
 
 

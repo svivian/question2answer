@@ -523,6 +523,29 @@ function qa_recalc_perform_step(&$state)
 				qa_recalc_transition($state, 'doblobstodb_complete');
 			break;
 
+		case 'docachetrim':
+			qa_recalc_transition($state, 'docachetrim_process');
+			break;
+		case 'docacheclear':
+			qa_recalc_transition($state, 'docacheclear_process');
+			break;
+
+		case 'docachetrim_process':
+		case 'docacheclear_process':
+			$cacheDriver = Q2A_Storage_CacheFactory::getCacheDriver();
+			$cacheStats = $cacheDriver->getStats();
+			$limit = min($cacheStats['files'], 20);
+
+			if ($cacheStats['files'] > 0 && $next <= $length) {
+				$deleted = $cacheDriver->clear($limit, $next, ($operation === 'docachetrim_process'));
+				$done += $deleted;
+				$next += $limit - $deleted; // skip files that weren't deleted on next iteration
+				$continue = true;
+			} else {
+				qa_recalc_transition($state, 'docacheclear_complete');
+			}
+			break;
+
 		default:
 			$state = '';
 			break;
@@ -531,7 +554,7 @@ function qa_recalc_perform_step(&$state)
 	if ($continue)
 		$state = $operation . "\t" . $length . "\t" . $next . "\t" . $done;
 
-	return $continue && ($done < $length);
+	return $continue && $done < $length;
 }
 
 
@@ -607,6 +630,13 @@ function qa_recalc_stage_length($operation)
 
 		case 'doblobstodb_move':
 			$length = qa_db_count_blobs_on_disk();
+			break;
+
+		case 'docachetrim_process':
+		case 'docacheclear_process':
+			$cacheDriver = Q2A_Storage_CacheFactory::getCacheDriver();
+			$cacheStats = $cacheDriver->getStats();
+			$length = $cacheStats['files'];
 			break;
 
 		default:
@@ -747,6 +777,15 @@ function qa_recalc_get_message($state)
 		case 'doblobstodisk_complete':
 		case 'doblobstodb_complete':
 			$message = qa_lang('admin/blobs_move_complete');
+			break;
+
+		case 'docachetrim_process':
+		case 'docacheclear_process':
+			$message = qa_recalc_progress_lang('admin/caching_delete_progress', $done, $length);
+			break;
+
+		case 'docacheclear_complete':
+			$message = qa_lang('admin/caching_delete_complete');
 			break;
 
 		default:

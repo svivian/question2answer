@@ -118,8 +118,8 @@ function qa_options_set_pending($names)
 
 
 /**
- * Load all of the Q2A options from the database, unless QA_OPTIMIZE_DISTANT_DB is set in qa-config.php,
- * in which case queue the options for later retrieval
+ * Load all of the Q2A options from the database.
+ * From Q2A 1.8 we always load the options in a separate query regardless of QA_OPTIMIZE_DISTANT_DB.
  */
 function qa_preload_options()
 {
@@ -211,14 +211,13 @@ function qa_reset_options($names)
  */
 function qa_default_option($name)
 {
-	if (qa_to_override(__FUNCTION__)) {
-		$args = func_get_args();
-		return qa_call_override(__FUNCTION__, $args);
-	}
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
 
 	$fixed_defaults = array(
+		'allow_anonymous_naming' => 1,
 		'allow_change_usernames' => 1,
 		'allow_close_questions' => 1,
+		'allow_close_own_questions' => 1,
 		'allow_multi_answers' => 1,
 		'allow_private_messages' => 1,
 		'allow_user_walls' => 1,
@@ -235,6 +234,7 @@ function qa_default_option($name)
 		'avatar_store_size' => 400,
 		'avatar_users_size' => 30,
 		'caching_catwidget_time' => 30,
+		'caching_driver' => 'filesystem',
 		'caching_enabled' => 0,
 		'caching_q_start' => 7,
 		'caching_q_time' => 30,
@@ -345,13 +345,18 @@ function qa_default_option($name)
 		'permit_view_special_users_page' => QA_PERMIT_MODERATORS,
 		'permit_view_voters_flaggers' => QA_PERMIT_ADMINS,
 		'permit_vote_a' => QA_PERMIT_USERS,
+		'permit_vote_c' => QA_PERMIT_USERS,
 		'permit_vote_down' => QA_PERMIT_USERS,
 		'permit_vote_q' => QA_PERMIT_USERS,
 		'points_a_selected' => 30,
 		'points_a_voted_max_gain' => 20,
 		'points_a_voted_max_loss' => 5,
 		'points_base' => 100,
+		'points_c_voted_max_gain' => 10,
+		'points_c_voted_max_loss' => 3,
 		'points_multiple' => 10,
+		'points_per_c_voted_down' => 0,
+		'points_per_c_voted_up' => 0,
 		'points_post_a' => 4,
 		'points_post_q' => 2,
 		'points_q_voted_max_gain' => 10,
@@ -381,6 +386,7 @@ function qa_default_option($name)
 		'tags_or_categories' => 'tc',
 		'use_microdata' => 1,
 		'voting_on_as' => 1,
+		'voting_on_cs' => 0,
 		'voting_on_qs' => 1,
 	);
 
@@ -432,6 +438,10 @@ function qa_default_option($name)
 
 		case 'register_terms':
 			$value = qa_lang_html_sub('options/default_terms', qa_html(qa_opt('site_title')));
+			break;
+
+		case 'block_bad_usernames':
+			$value = qa_lang_html('main/anonymous');
 			break;
 
 		case 'custom_sidebar':
@@ -632,13 +642,13 @@ function qa_message_html_defaults()
 
 
 /**
- * Return $voteview parameter to pass to qa_post_html_fields() in qa-app-format.php for the post in $postorbasetype
- * with buttons enabled if appropriate (based on whether $full post shown) unless $enabledif is false.
- * For compatibility $postorbasetype can also just be a basetype, i.e. 'Q', 'A' or 'C'
- * @param $postorbasetype
- * @param bool $full
- * @param bool $enabledif
- * @return bool|string
+ * Return $voteview parameter to pass to qa_post_html_fields() in qa-app-format.php.
+ * @param $postorbasetype The post, or for compatibility just a basetype, i.e. 'Q', 'A' or 'C'
+ * @param bool $full Whether full post is shown
+ * @param bool $enabledif Whether to do checks for voting buttons (i.e. will always disable voting if false)
+ * @return bool|string Possible values:
+ *   updown, updown-disabled-page, updown-disabled-level, updown-uponly-level, updown-disabled-approve, updown-uponly-approve
+ *   net, net-disabled-page, net-disabled-level, net-uponly-level, net-disabled-approve, net-uponly-approve
  */
 function qa_get_vote_view($postorbasetype, $full = false, $enabledif = true)
 {
@@ -647,10 +657,10 @@ function qa_get_vote_view($postorbasetype, $full = false, $enabledif = true)
 	// The 'level' and 'approve' permission errors are taken care of by disabling the voting buttons.
 	// Others are reported to the user after they click, in qa_vote_error_html(...)
 
-	if (is_array($postorbasetype)) { // deal with dual-use parameter
+	// deal with dual-use parameter
+	if (is_array($postorbasetype)) {
 		$basetype = $postorbasetype['basetype'];
 		$post = $postorbasetype;
-
 	} else {
 		$basetype = $postorbasetype;
 		$post = null;
@@ -658,36 +668,50 @@ function qa_get_vote_view($postorbasetype, $full = false, $enabledif = true)
 
 	$disabledsuffix = '';
 
-	if ($basetype == 'Q' || $basetype == 'A') {
-		$view = $basetype == 'A' ? qa_opt('voting_on_as') : qa_opt('voting_on_qs');
+	switch($basetype)
+	{
+		case 'Q':
+			$view = qa_opt('voting_on_qs');
+			$permitOpt = 'permit_vote_q';
+			break;
+		case 'A':
+			$view = qa_opt('voting_on_as');
+			$permitOpt = 'permit_vote_a';
+			break;
+		case 'C':
+			$view = qa_opt('voting_on_cs');
+			$permitOpt = 'permit_vote_c';
+			break;
+		default:
+			$view = false;
+			break;
+	}
 
-		if (!($enabledif && ($basetype == 'A' || $full || !qa_opt('voting_on_q_page_only'))))
-			$disabledsuffix = '-disabled-page';
+	if (!$view) {
+		return false;
+	}
 
+	if (!$enabledif || ($basetype == 'Q' && !$full && qa_opt('voting_on_q_page_only'))) {
+		$disabledsuffix = '-disabled-page';
+	}
+	else {
+		$permiterror = isset($post) ? qa_user_post_permit_error($permitOpt, $post) : qa_user_permit_error($permitOpt);
+
+		if ($permiterror == 'level')
+			$disabledsuffix = '-disabled-level';
+		elseif ($permiterror == 'approve')
+			$disabledsuffix = '-disabled-approve';
 		else {
-			if ($basetype == 'A')
-				$permiterror = isset($post) ? qa_user_post_permit_error('permit_vote_a', $post) : qa_user_permit_error('permit_vote_a');
-			else
-				$permiterror = isset($post) ? qa_user_post_permit_error('permit_vote_q', $post) : qa_user_permit_error('permit_vote_q');
+			$permiterrordown = isset($post) ? qa_user_post_permit_error('permit_vote_down', $post) : qa_user_permit_error('permit_vote_down');
 
-			if ($permiterror == 'level')
-				$disabledsuffix = '-disabled-level';
-			elseif ($permiterror == 'approve')
-				$disabledsuffix = '-disabled-approve';
-			else {
-				$permiterrordown = isset($post) ? qa_user_post_permit_error('permit_vote_down', $post) : qa_user_permit_error('permit_vote_down');
-
-				if ($permiterrordown == 'level')
-					$disabledsuffix = '-uponly-level';
-				elseif ($permiterrordown == 'approve')
-					$disabledsuffix = '-uponly-approve';
-			}
+			if ($permiterrordown == 'level')
+				$disabledsuffix = '-uponly-level';
+			elseif ($permiterrordown == 'approve')
+				$disabledsuffix = '-uponly-approve';
 		}
+	}
 
-	} else
-		$view = false;
-
-	return $view ? ((qa_opt('votes_separated') ? 'updown' : 'net') . $disabledsuffix) : false;
+	return (qa_opt('votes_separated') ? 'updown' : 'net') . $disabledsuffix;
 }
 
 
@@ -791,7 +815,10 @@ function qa_get_permit_options()
 	if (qa_opt('voting_on_as'))
 		$permits[] = 'permit_vote_a';
 
-	if (qa_opt('voting_on_qs') || qa_opt('voting_on_as'))
+	if (qa_opt('voting_on_cs'))
+		$permits[] = 'permit_vote_c';
+
+	if (qa_opt('voting_on_qs') || qa_opt('voting_on_as') || qa_opt('voting_on_cs'))
 		$permits[] = 'permit_vote_down';
 
 	if (qa_using_tags() || qa_using_categories())
@@ -809,7 +836,7 @@ function qa_get_permit_options()
 
 	array_push($permits, 'permit_select_a', 'permit_anon_view_ips');
 
-	if (qa_opt('voting_on_qs') || qa_opt('voting_on_as') || qa_opt('flagging_of_posts'))
+	if (qa_opt('voting_on_qs') || qa_opt('voting_on_as') || qa_opt('voting_on_cs') || qa_opt('flagging_of_posts'))
 		$permits[] = 'permit_view_voters_flaggers';
 
 	if (qa_opt('flagging_of_posts'))

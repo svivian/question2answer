@@ -109,7 +109,7 @@ if (qa_clicked('doask')) {
 	$categoryids = array_keys(qa_category_path($categories, @$in['categoryid']));
 	$userlevel = qa_user_level_for_categories($categoryids);
 
-	$in['name'] = qa_post_text('name');
+	$in['name'] = qa_opt('allow_anonymous_naming') ? qa_post_text('name') : null;
 	$in['notify'] = strlen(qa_post_text('notify')) > 0;
 	$in['email'] = qa_post_text('email');
 	$in['queued'] = qa_user_moderation_reason($userlevel) !== false;
@@ -236,7 +236,6 @@ if (!strlen($custom)) {
 }
 
 if (qa_opt('do_ask_check_qs') || qa_opt('do_example_tags')) {
-	$qa_content['script_rel'][] = 'qa-content/qa-ask.js?'.QA_VERSION;
 	$qa_content['form']['fields']['title']['tags'] .= ' onchange="qa_title_change(this.value);"';
 
 	if (strlen(@$in['title'])) {
@@ -292,7 +291,7 @@ if (qa_using_tags()) {
 	qa_array_insert($qa_content['form']['fields'], null, array('tags' => $field));
 }
 
-if (!isset($userid)) {
+if (!isset($userid) && qa_opt('allow_anonymous_naming')) {
 	qa_set_up_name_field($qa_content, $qa_content['form']['fields'], @$in['name']);
 }
 

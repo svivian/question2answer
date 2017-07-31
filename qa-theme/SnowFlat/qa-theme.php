@@ -74,11 +74,33 @@ class qa_html_theme extends qa_html_theme_base
 		if ($this->isRTL)
 			$this->content['css_src'][] = $this->rooturl . 'qa-styles-rtl.css?' . QA_VERSION;
 
-		// add Ubuntu font CSS file from Google Fonts
-		if ($this->localfonts)
-			$this->content['css_src'][] = $this->rooturl . 'fonts/ubuntu.css?' . QA_VERSION;
-		else
-			$this->content['css_src'][] = '//fonts.googleapis.com/css?family=Ubuntu:400,700,400italic,700italic';
+		if ($this->localfonts) {
+			// add Ubuntu font locally (inlined for speed)
+			$this->output_array(array(
+				'<style>',
+				'@font-face {',
+				' font-family: "Ubuntu"; font-style: normal; font-weight: 400;',
+				' src: local("Ubuntu"), url("' . $this->rooturl . 'fonts/Ubuntu-regular.woff") format("woff");',
+				'}',
+				'@font-face {',
+				' font-family: "Ubuntu"; font-style: normal; font-weight: 700;',
+				' src: local("Ubuntu Bold"), local("Ubuntu-Bold"), url("' . $this->rooturl . 'fonts/Ubuntu-700.woff") format("woff");',
+				'}',
+				'@font-face {',
+				' font-family: "Ubuntu"; font-style: italic; font-weight: 400;',
+				' src: local("Ubuntu Italic"), local("Ubuntu-Italic"), url("' . $this->rooturl . 'fonts/Ubuntu-italic.woff") format("woff");',
+				'}',
+				'@font-face {',
+				' font-family: "Ubuntu"; font-style: italic; font-weight: 700;',
+				' src: local("Ubuntu Bold Italic"), local("Ubuntu-BoldItalic"), url("' . $this->rooturl . 'fonts/Ubuntu-700italic.woff") format("woff");',
+				'}',
+				'</style>',
+			));
+		}
+		else {
+			// add Ubuntu font CSS file from Google Fonts
+			$this->content['css_src'][] = 'https://fonts.googleapis.com/css?family=Ubuntu:400,400i,700,700i';
+		}
 
 		parent::head_css();
 
@@ -201,8 +223,8 @@ class qa_html_theme extends qa_html_theme_base
 	 * Remove the '-' from the note for the category page (notes).
 	 *
 	 * @since Snow 1.4
-	 * @param type $navlink
-	 * @param type $class
+	 * @param array $navlink
+	 * @param string $class
 	 */
 	public function nav_link($navlink, $class)
 	{
@@ -409,7 +431,7 @@ class qa_html_theme extends qa_html_theme_base
 	 * Prevent display view counter on usual place
 	 *
 	 * @since Snow 1.4
-	 * @param type $q_item
+	 * @param array $q_item
 	 */
 	public function view_count($q_item)
 	{
@@ -420,7 +442,7 @@ class qa_html_theme extends qa_html_theme_base
 	 * Add view counter to question view
 	 *
 	 * @since Snow 1.4
-	 * @param type $q_view
+	 * @param array $q_view
 	 */
 	public function q_view_stats($q_view)
 	{
@@ -437,7 +459,7 @@ class qa_html_theme extends qa_html_theme_base
 	 * Modify user whometa, move to top
 	 *
 	 * @since Snow 1.4
-	 * @param type $q_view
+	 * @param array $q_view
 	 */
 	public function q_view_main($q_view)
 	{
@@ -468,10 +490,23 @@ class qa_html_theme extends qa_html_theme_base
 	}
 
 	/**
+	 * Hide votes when zero
+	 * @param  array $post
+	 */
+	public function vote_count($post)
+	{
+		if ($post['raw']['basetype'] === 'C' && $post['raw']['netvotes'] == 0) {
+			$post['netvotes_view']['data'] = '';
+		}
+
+		parent::vote_count($post);
+	}
+
+	/**
 	 * Move user whometa to top in answer
 	 *
 	 * @since Snow 1.4
-	 * @param type $a_item
+	 * @param array $a_item
 	 */
 	public function a_item_main($a_item)
 	{
@@ -517,10 +552,26 @@ class qa_html_theme extends qa_html_theme_base
 	}
 
 	/**
+	 * Remove voting here
+	 * @param array $c_item
+	 */
+	public function c_list_item($c_item)
+	{
+		$extraclass = @$c_item['classes'] . (@$c_item['hidden'] ? ' qa-c-item-hidden' : '');
+
+		$this->output('<div class="qa-c-list-item ' . $extraclass . '" ' . @$c_item['tags'] . '>');
+
+		$this->c_item_main($c_item);
+		$this->c_item_clear();
+
+		$this->output('</div> <!-- END qa-c-item -->');
+	}
+
+	/**
 	 * Move user whometa to top in comment
 	 *
 	 * @since Snow 1.4
-	 * @param type $c_item
+	 * @param array $c_item
 	 */
 	public function c_item_main($c_item)
 	{
@@ -528,6 +579,8 @@ class qa_html_theme extends qa_html_theme_base
 
 		if (isset($c_item['error']))
 			$this->error($c_item['error']);
+
+		$this->voting($c_item);
 
 		if (isset($c_item['expand_tags']))
 			$this->c_item_expand($c_item);
