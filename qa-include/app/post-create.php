@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-app-post-create.php
 	Description: Creating questions, answers and comments (application level)
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -48,7 +47,7 @@ function qa_combine_notify_email($userid, $notify, $email)
 /**
  * Add a question (application level) - create record, update appropriate counts, index it, send notifications.
  * If question is follow-on from an answer, $followanswer should contain answer database record, otherwise null.
- * See qa-app-posts.php for a higher-level function which is easier to use.
+ * See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $followanswer
  * @param $userid
  * @param $handle
@@ -192,7 +191,7 @@ function qa_post_index($postid, $type, $questionid, $parentid, $title, $content,
 /**
  * Add an answer (application level) - create record, update appropriate counts, index it, send notifications.
  * $question should contain database record for the question this is an answer to.
- * See qa-app-posts.php for a higher-level function which is easier to use.
+ * See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $userid
  * @param $handle
  * @param $cookieid
@@ -262,7 +261,7 @@ function qa_update_q_counts_for_a($questionid)
  * If this is a comment on an answer, $answer should contain database record for the answer, otherwise null.
  * $commentsfollows should contain database records for all previous comments on the same question or answer,
  * but it can also contain other records that are ignored.
- * See qa-app-posts.php for a higher-level function which is easier to use.
+ * See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $userid
  * @param $handle
  * @param $cookieid

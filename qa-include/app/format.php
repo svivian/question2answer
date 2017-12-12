@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-app-format.php
 	Description: Common functions for creating theme-ready structures from data
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -279,7 +278,7 @@ function qa_ip_anchor_html($ip, $anchorhtml = null)
  * $userid and $cookieid refer to the user *viewing* the page.
  * $usershtml is an array of [user id] => [HTML representation of user] built ahead of time.
  * $dummy is a placeholder (used to be $categories parameter but that's no longer needed)
- * $options is an array which sets what is displayed (see qa_post_html_defaults() in qa-app-options.php)
+ * $options is an array which sets what is displayed (see qa_post_html_defaults() in /qa-include/app/options.php)
  * If something is missing from $post (e.g. ['content']), correponding HTML also omitted.
  * @param $post
  * @param $userid
@@ -505,7 +504,7 @@ function qa_post_html_fields($post, $userid, $cookieid, $usershtml, $dummy, $opt
 
 		if ($fields['hidden']) {
 			$fields['vote_state'] = 'disabled';
-			$fields['vote_up_tags'] = 'title="' . qa_lang_html('main/vote_disabled_hidden') . '"';
+			$fields['vote_up_tags'] = 'title="' . qa_lang_html('main/vote_disabled_hidden_post') . '"';
 			$fields['vote_down_tags'] = $fields['vote_up_tags'];
 
 		} elseif ($fields['queued']) {
@@ -515,7 +514,7 @@ function qa_post_html_fields($post, $userid, $cookieid, $usershtml, $dummy, $opt
 
 		} elseif ($isbyuser) {
 			$fields['vote_state'] = 'disabled';
-			$fields['vote_up_tags'] = 'title="' . qa_lang_html($isanswer ? 'main/vote_disabled_my_a' : 'main/vote_disabled_my_q') . '"';
+			$fields['vote_up_tags'] = 'title="' . qa_lang_html('main/vote_disabled_my_post') . '"';
 			$fields['vote_down_tags'] = $fields['vote_up_tags'];
 
 		} elseif (strpos($voteview, '-disabled-')) {
@@ -680,7 +679,7 @@ function qa_post_html_fields($post, $userid, $cookieid, $usershtml, $dummy, $opt
  * Generate array of mostly HTML representing a message, to be passed to theme layer.
  *
  * @param array $message  The message object (as retrieved from database).
- * @param array $options  Viewing options (see qa_message_html_defaults() in app/options.php).
+ * @param array $options  Viewing options (see qa_message_html_defaults() in /qa-include/app/options.php).
  * @return array  The HTML.
  */
 function qa_message_html_fields($message, $options = array())
@@ -1417,10 +1416,12 @@ function qa_users_sub_navigation()
 		);
 	}
 
-	$menuItems['users/new'] = array(
-		'label' => qa_lang_html('main/newest_users'),
-		'url' => qa_path_html('users/new'),
-	);
+	if ($showNewUsersPage) {
+		$menuItems['users/new'] = array(
+			'label' => qa_lang_html('main/newest_users'),
+			'url' => qa_path_html('users/new'),
+		);
+	}
 
 	if ($showSpecialUsersPage) {
 		$menuItems['users/special'] = array(
@@ -1512,6 +1513,7 @@ function qa_user_sub_navigation($handle, $selected, $ismyuser = false)
 
 /**
  * Return the sub navigation structure for private message pages
+ * @deprecated 1.8.0 This menu is no longer used.
  * @param null $selected
  * @return array
  */

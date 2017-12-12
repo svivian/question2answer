@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-lang-users.php
 	Description: Language phrases for user management
 
 
@@ -23,7 +22,7 @@
 return array(
 	'about' => 'About',
 	'add_user_x_favorites' => 'Add user ^ to my favorites',
-	'approve_required' => 'Please wait for your account to be approved or ^1add more information^2.',
+	'approve_required' => 'Please wait for your account to be approved or ^1add more information^2.', // @deprecated
 	'approve_title' => 'User approval pending',
 	'approve_user_button' => 'Approve User',
 	'approved_user' => 'Approved user',

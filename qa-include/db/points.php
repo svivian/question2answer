@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-db-points.php
 	Description: Database-level access to user points and statistics
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -173,14 +172,15 @@ function qa_db_points_update_ifuser($userid, $columns)
 
 		$calculations = qa_db_points_calculations();
 
-		if ($columns === true)
+		if ($columns === true) {
 			$keycolumns = $calculations;
-		elseif (empty($columns))
+		} elseif (empty($columns)) {
 			$keycolumns = array();
-		elseif (is_array($columns))
+		} elseif (is_array($columns)) {
 			$keycolumns = array_flip($columns);
-		else
+		} else {
 			$keycolumns = array($columns => true);
+		}
 
 		$insertfields = 'userid, ';
 		$insertvalues = '$, ';
@@ -208,8 +208,9 @@ function qa_db_points_update_ifuser($userid, $columns)
 		// build like this so that a #, $ or ^ character in the $userid (if external integration) isn't substituted
 		qa_db_query_raw(str_replace('~', "='" . qa_db_escape_string($userid) . "'", qa_db_apply_sub($query, array($userid))));
 
-		if (qa_db_insert_on_duplicate_inserted())
+		if (qa_db_insert_on_duplicate_inserted()) {
 			qa_db_userpointscount_update();
+		}
 	}
 }
 

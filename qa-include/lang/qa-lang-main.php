@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-lang-main.php
 	Description: Language phrases commonly used throughout Q2A
 
 
@@ -182,7 +181,7 @@ return array(
 	'unupvoteda_qs_in_x' => 'Questions without an upvoted answer in ^',
 	'unupvoteda_qs_title' => 'Recent questions without an upvoted answer',
 	'upload_limit' => 'Too many uploads - please try again in an hour',
-	'view_q_must_be_approved' => 'Your account must be approved to view question pages.',
+	'view_q_must_be_approved' => 'Your account must be approved to view question pages. Please wait or ^1add more information^2.',
 	'view_q_must_confirm' => 'Please ^5confirm your email address^6 to view question pages.',
 	'view_q_must_login' => 'Please ^1log in^2 or ^3register^4 to view question pages.',
 	'viewed_qs_in_x' => 'Most viewed questions in ^',
@@ -190,12 +189,13 @@ return array(
 	'vote_disabled_approve' => 'Your account must be approved before you can vote',
 	'vote_disabled_down' => 'Voting down is only available to some users',
 	'vote_disabled_down_approve' => 'Your account must be approved before you can vote down',
-	'vote_disabled_hidden' => 'You cannot vote on hidden posts',
+	'vote_disabled_hidden_post' => 'You cannot vote on hidden posts',
 	'vote_disabled_hidden_a' => 'You cannot vote on hidden answers',  // @deprecated
 	'vote_disabled_hidden_q' => 'You cannot vote on hidden questions',  // @deprecated
 	'vote_disabled_level' => 'Voting is only available to some users',
-	'vote_disabled_my_a' => 'You cannot vote on your own answers',
-	'vote_disabled_my_q' => 'You cannot vote on your own questions',
+	'vote_disabled_my_post' => 'You cannot vote on your own posts',
+	'vote_disabled_my_a' => 'You cannot vote on your own answers',  // @deprecated
+	'vote_disabled_my_q' => 'You cannot vote on your own questions',  // @deprecated
 	'vote_disabled_q_page_only' => 'Please view this question to vote',
 	'vote_disabled_queued' => 'You can only vote on approved posts',
 	'vote_down_must_confirm' => 'Please ^5confirm your email address^6 to vote down.',

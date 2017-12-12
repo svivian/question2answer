@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-user-profile.php
 	Description: Controller for user profile page, including wall
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -31,7 +30,7 @@ require_once QA_INCLUDE_DIR . 'app/limits.php';
 require_once QA_INCLUDE_DIR . 'app/updates.php';
 
 
-// $handle, $userhtml are already set by qa-page-user.php - also $userid if using external user integration
+// $handle, $userhtml are already set by /qa-include/page/user.php - also $userid if using external user integration
 
 
 // Redirect to 'My Account' page if button clicked
@@ -276,7 +275,7 @@ if (!QA_FINAL_EXTERNAL_USERS) {
 					$postids = qa_db_get_user_visible_postids($userid);
 
 					foreach ($postids as $postid)
-						qa_post_set_hidden($postid, true, $loginuserid);
+						qa_post_set_status($postid, QA_POST_STATUS_HIDDEN, $loginuserid);
 
 					qa_redirect(qa_request());
 				}

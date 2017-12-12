@@ -21,7 +21,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -30,8 +30,9 @@ require_once QA_INCLUDE_DIR . 'app/format.php';
 
 // Check we're not using single-sign on integration
 
-if (QA_FINAL_EXTERNAL_USERS)
+if (QA_FINAL_EXTERNAL_USERS) {
 	qa_fatal_error('User accounts are handled by external code');
+}
 
 
 // Check we have permission to view this page (moderator or above)
@@ -83,11 +84,11 @@ if (!empty($users)) {
 	$qa_content['title'] = qa_lang_html('main/no_active_users');
 }
 
-// set the canonical url based on possible pagination
-$qa_content['canonical'] = qa_path_html(qa_request(), ($start > 0 ? array('start' => $start) : null), qa_opt('site_url'));
+$qa_content['canonical'] = qa_get_canonical();
 
 $qa_content['page_links'] = qa_html_page_links(qa_request(), $start, $pageSize, $userCount, qa_opt('pages_prev_next'));
 
 $qa_content['navigation']['sub'] = qa_users_sub_navigation();
+
 
 return $qa_content;

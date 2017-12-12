@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-app-q-list.php
 	Description: Controller for most question listing pages, plus custom pages and plugin pages
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -124,6 +123,8 @@ function qa_q_list_page_content($questions, $pagesize, $start, $count, $sometitl
 	if (isset($count) && isset($pagesize)) {
 		$qa_content['page_links'] = qa_html_page_links(qa_request(), $start, $pagesize, $count, qa_opt('pages_prev_next'), $pagelinkparams);
 	}
+
+	$qa_content['canonical'] = qa_get_canonical();
 
 	if (empty($qa_content['page_links'])) {
 		$qa_content['suggest_next'] = $suggest;

@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-db-events.php
 	Description: Database-level access to userevents and sharedevents tables
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -31,7 +30,7 @@ if (!defined('QA_VERSION')) { // don't allow this page to be requested directly 
  * $lastpostid whose antecedent question is $questionid, and was caused by $lastuserid. Pass a unix $timestamp for the
  * event time or leave as null to use now. This will add the event both to the entity's shared stream, and the
  * individual user streams for any users following the entity not via its shared stream (See long comment in
- * qa-db-favorites.php). Also handles truncation.
+ * /qa-include/db/favorites.php). Also handles truncation.
  * @param $entitytype
  * @param $entityid
  * @param $questionid

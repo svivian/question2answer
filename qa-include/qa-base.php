@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-base.php
 	Description: Sets up Q2A environment, plus many globally useful functions
 
 
@@ -21,8 +20,8 @@
 */
 
 
-define('QA_VERSION', '1.7.4'); // also used as suffix for .js and .css requests
-define('QA_BUILD_DATE', '2016-03-14');
+define('QA_VERSION', '1.8.0-beta1'); // also used as suffix for .js and .css requests
+define('QA_BUILD_DATE', '2017-09-07');
 
 
 /**
@@ -242,15 +241,23 @@ function qa_initialize_constants_2()
 {
 	// Default values if not set in qa-config.php
 
-	@define('QA_COOKIE_DOMAIN', '');
-	@define('QA_HTML_COMPRESSION', true);
-	@define('QA_MAX_LIMIT_START', 19999);
-	@define('QA_IGNORED_WORDS_FREQ', 10000);
-	@define('QA_ALLOW_UNINDEXED_QUERIES', false);
-	@define('QA_OPTIMIZE_LOCAL_DB', true); // no longer used
-	@define('QA_OPTIMIZE_DISTANT_DB', false);
-	@define('QA_PERSISTENT_CONN_DB', false);
-	@define('QA_DEBUG_PERFORMANCE', false);
+	$defaults = array(
+		'QA_COOKIE_DOMAIN' => '',
+		'QA_HTML_COMPRESSION' => true,
+		'QA_MAX_LIMIT_START' => 19999,
+		'QA_IGNORED_WORDS_FREQ' => 10000,
+		'QA_ALLOW_UNINDEXED_QUERIES' => false,
+		'QA_OPTIMIZE_LOCAL_DB' => true,
+		'QA_OPTIMIZE_DISTANT_DB' => false,
+		'QA_PERSISTENT_CONN_DB' => false,
+		'QA_DEBUG_PERFORMANCE' => false,
+	);
+
+	foreach ($defaults as $key => $def) {
+		if (!defined($key)) {
+			define($key, $def);
+		}
+	}
 
 	// Start performance monitoring
 

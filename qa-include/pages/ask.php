@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-ask.php
 	Description: Controller for ask a question page
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -79,7 +78,10 @@ if ($permiterror) {
 			break;
 
 		case 'approve':
-			$qa_content['error'] = qa_lang_html('question/ask_must_be_approved');
+			$qa_content['error'] = strtr(qa_lang_html('question/ask_must_be_approved'), array(
+				'^1' => '<a href="' . qa_path_html('account') . '">',
+				'^2' => '</a>',
+			));
 			break;
 
 		default:

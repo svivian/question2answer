@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-tag.php
 	Description: Controller for page for a specific tag
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -36,8 +35,9 @@ $userid = qa_get_logged_in_userid();
 
 // Find the questions with this tag
 
-if (!strlen($tag))
+if (!strlen($tag)) {
 	qa_redirect('tags');
+}
 
 list($questions, $tagword) = qa_db_select_with_pending(
 	qa_db_tag_recent_qs_selectspec($userid, $tag, $start, false, qa_opt_if_loaded('page_size_tag_qs')),
@@ -79,6 +79,8 @@ foreach ($questions as $postid => $question) {
 	$qa_content['q_list']['qs'][] =
 		qa_post_html_fields($question, $userid, qa_cookie_get(), $usershtml, null, qa_post_html_options($question));
 }
+
+$qa_content['canonical'] = qa_get_canonical();
 
 $qa_content['page_links'] = qa_html_page_links(qa_request(), $start, $pagesize, $tagword['tagcount'], qa_opt('pages_prev_next'));
 

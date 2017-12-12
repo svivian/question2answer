@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-app-admin.php
 	Description: Functions used in the admin center pages
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -152,7 +151,7 @@ function qa_admin_theme_options()
 		$metadata = $metadataUtil->fetchFromAddonPath($directory);
 		if (empty($metadata)) {
 			// limit theme parsing to first 8kB
-			$contents = file_get_contents($directory . '/qa-styles.css', false, null, 0, 8192);
+			$contents = @file_get_contents($directory . '/qa-styles.css', false, null, 0, 8192);
 			$metadata = qa_addon_metadata($contents, 'Theme');
 		}
 		$options[$theme] = isset($metadata['name']) ? $metadata['name'] : $theme;
@@ -533,28 +532,28 @@ function qa_admin_single_click($entityid, $action)
 			switch ($action) {
 				case 'approve':
 					if ($queued && !qa_user_post_permit_error('permit_moderate', $post)) {
-						qa_post_set_hidden($entityid, false, $userid);
+						qa_post_set_status($entityid, QA_POST_STATUS_NORMAL, $userid);
 						return true;
 					}
 					break;
 
 				case 'reject':
 					if ($queued && !qa_user_post_permit_error('permit_moderate', $post)) {
-						qa_post_set_hidden($entityid, true, $userid);
+						qa_post_set_status($entityid, QA_POST_STATUS_HIDDEN, $userid);
 						return true;
 					}
 					break;
 
 				case 'hide':
 					if (!$queued && !qa_user_post_permit_error('permit_hide_show', $post)) {
-						qa_post_set_hidden($entityid, true, $userid);
+						qa_post_set_status($entityid, QA_POST_STATUS_HIDDEN, $userid);
 						return true;
 					}
 					break;
 
 				case 'reshow':
 					if ($post['hidden'] && !qa_user_post_permit_error('permit_hide_show', $post)) {
-						qa_post_set_hidden($entityid, false, $userid);
+						qa_post_set_status($entityid, QA_POST_STATUS_NORMAL, $userid);
 						return true;
 					}
 					break;

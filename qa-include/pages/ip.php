@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-ip.php
 	Description: Controller for page showing recent activity for an IP address
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -110,7 +109,7 @@ if (qa_clicked('doblock') || qa_clicked('dounblock') || qa_clicked('dohideall'))
 			$postids = qa_db_get_ip_visible_postids($ip);
 
 			foreach ($postids as $postid)
-				qa_post_set_hidden($postid, true, $userid);
+				qa_post_set_status($postid, QA_POST_STATUS_HIDDEN, $userid);
 
 			qa_redirect(qa_request());
 		}

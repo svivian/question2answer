@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-question-view.php
 	Description: Common functions for question page viewing, either regular or via Ajax
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -654,6 +653,10 @@ function qa_page_q_comment_view($question, $parent, $comment, $usershtml, $formr
 	if ($comment['queued'])
 		$c_view['error'] = $comment['isbyuser'] ? qa_lang_html('question/c_your_waiting_approval') : qa_lang_html('question/c_waiting_your_approval');
 
+	$c_view['main_form_tags'] = 'method="post" action="' . qa_self_html() . '"';
+	$c_view['voting_form_hidden'] = array('code' => qa_get_form_security_code('vote'));
+	$c_view['buttons_form_hidden'] = array('code' => qa_get_form_security_code('buttons-' . $parent['postid']), 'qa_click' => '');
+
 
 	// Buttons for operating on this comment
 
@@ -891,7 +894,10 @@ function qa_page_q_add_a_form(&$qa_content, $formid, $captchareason, $question, 
 
 		case 'approve':
 			$form = array(
-				'title' => qa_lang_html('question/answer_must_be_approved'),
+				'title' => strtr(qa_lang_html('question/answer_must_be_approved'), array(
+					'^1' => '<a href="' . qa_path_html('account') . '">',
+					'^2' => '</a>',
+				)),
 			);
 			break;
 
@@ -1037,7 +1043,10 @@ function qa_page_q_add_c_form(&$qa_content, $question, $parent, $formid, $captch
 
 		case 'approve':
 			$form = array(
-				'title' => qa_lang_html('question/comment_must_be_approved'),
+				'title' => strtr(qa_lang_html('question/comment_must_be_approved'), array(
+					'^1' => '<a href="' . qa_path_html('account') . '">',
+					'^2' => '</a>',
+				)),
 			);
 			break;
 

@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page.php
 	Description: Routing and utility functions for page requests
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -168,7 +167,7 @@ function qa_check_page_clicks()
 
 
 /**
- *	Run the appropriate qa-page-*.php file for this request and return back the $qa_content it passed
+ *	Run the appropriate /qa-include/pages/*.php file for this request and return back the $qa_content it passed
  */
 function qa_get_request_content()
 {
@@ -282,15 +281,9 @@ function qa_output_content($qa_content)
 				'^1' => '<a href="' . qa_path_html('confirm') . '">',
 				'^2' => '</a>',
 			));
-
-		} elseif (($flags & QA_USER_FLAGS_MUST_APPROVE) && qa_get_logged_in_level() < QA_USER_LEVEL_APPROVED && qa_opt('moderate_users')) {
-			$qa_content = qa_content_prepare();
-			$qa_content['title'] = qa_lang_html('users/approve_title');
-			$qa_content['error'] = strtr(qa_lang_html('users/approve_required'), array(
-				'^1' => '<a href="' . qa_path_html('account') . '">',
-				'^2' => '</a>',
-			));
 		}
+
+		// we no longer block access here for unapproved users; this is handled by the Permissions settings
 	}
 
 	// Combine various Javascript elements in $qa_content into single array for theme layer
@@ -336,7 +329,7 @@ function qa_output_content($qa_content)
 
 	if (isset($qa_content['script_onloads'])) {
 		$script[] = '<script>';
-		$script[] = '$(window).load(function() {';
+		$script[] = '$(window).on(\'load\', function() {';
 
 		foreach ($qa_content['script_onloads'] as $scriptonload) {
 			foreach ((array)$scriptonload as $scriptline) {
@@ -375,20 +368,26 @@ function qa_output_content($qa_content)
  */
 function qa_do_content_stats($qa_content)
 {
-	if (isset($qa_content['inc_views_postid'])) {
-		require_once QA_INCLUDE_DIR . 'db/hotness.php';
-		qa_db_hotness_update($qa_content['inc_views_postid'], null, true);
-		return true;
+	if (!isset($qa_content['inc_views_postid'])) {
+		return false;
 	}
 
-	return false;
+	require_once QA_INCLUDE_DIR . 'db/hotness.php';
+
+	$viewsIncremented = qa_db_increment_views($qa_content['inc_views_postid']);
+
+	if ($viewsIncremented && qa_opt('recalc_hotness_q_view')) {
+		qa_db_hotness_update($qa_content['inc_views_postid']);
+	}
+
+	return true;
 }
 
 
 // Other functions which might be called from anywhere
 
 /**
- * Return an array of the default Q2A requests and which qa-page-*.php file implements them
+ * Return an array of the default Q2A requests and which /qa-include/pages/*.php file implements them
  * If the key of an element ends in /, it should be used for any request with that key as its prefix
  */
 function qa_page_routing()
@@ -616,7 +615,7 @@ function qa_content_prepare($voting = false, $categoryids = null)
 		);
 	}
 
-	// Only the 'level' permission error prevents the menu option being shown - others reported on qa-page-ask.php
+	// Only the 'level' permission error prevents the menu option being shown - others reported on /qa-include/pages/ask.php
 
 	if (qa_opt('nav_ask') && qa_user_maximum_permit_error('permit_post_q') != 'level') {
 		$qa_content['navigation']['main']['ask'] = array(
@@ -797,7 +796,7 @@ function qa_content_prepare($voting = false, $categoryids = null)
 		}
 	}
 
-	$qa_content['script_rel'] = array('qa-content/jquery-1.11.3.min.js');
+	$qa_content['script_rel'] = array('qa-content/jquery-3.2.1.min.js');
 	$qa_content['script_rel'][] = 'qa-content/qa-global.js?' . QA_VERSION;
 
 	if ($voting)
@@ -814,6 +813,7 @@ function qa_content_prepare($voting = false, $categoryids = null)
 
 /**
  * Get the start parameter which should be used, as constrained by the setting in qa-config.php
+ * @return int
  */
 function qa_get_start()
 {
@@ -823,9 +823,33 @@ function qa_get_start()
 
 /**
  * Get the state parameter which should be used, as set earlier in qa_load_state()
+ * @return string
  */
 function qa_get_state()
 {
 	global $qa_state;
 	return $qa_state;
+}
+
+
+/**
+ * Generate a canonical URL for the current request. Preserves certain GET parameters.
+ * @return string The full canonical URL.
+ */
+function qa_get_canonical()
+{
+	$params = array();
+
+	// variable assignment intentional here
+	if (($start = qa_get_start()) > 0) {
+		$params['start'] = $start;
+	}
+	if ($sort = qa_get('sort')) {
+		$params['sort'] = $sort;
+	}
+	if ($by = qa_get('by')) {
+		$params['by'] = $by;
+	}
+
+	return qa_path_html(qa_request(), $params, qa_opt('site_url'));
 }

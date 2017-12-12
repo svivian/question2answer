@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-lang-options.php
 	Description: Language phrases for all options, as shown in admin center
 
 
@@ -33,7 +32,7 @@ return array(
 	'allow_self_answer' => 'Allow users to answer their own question:',
 	'allow_user_walls' => 'Enable wall posts on user profiles:',
 	'allow_view_q_bots' => 'Allow search engines to view question pages',
-	'approve_user_required' => 'All new users must be approved:',
+	'approve_user_required' => 'All new users must be approved:', // @deprecated
 	'avatar_allow_gravatar' => 'Allow ^1Gravatar^2 avatars:',
 	'avatar_allow_upload' => 'Allow users to upload avatars:',
 	'avatar_default_show' => 'Default avatar:',
@@ -239,6 +238,7 @@ return array(
 	'points_vote_up_q' => 'Voting up a question:',
 	'q_urls_remove_accents' => 'Remove accents from question URLs:',
 	'q_urls_title_length' => 'Question title length in URLs:',
+	'recalc_hotness_q_view' => 'Recalculate hotness on every question page view:',
 	'register_notify_admin' => 'Email me when a new user registers:',
 	'search_module' => 'Use search module:',
 	'show_a_form_immediate' => 'Show answer form immediately:',

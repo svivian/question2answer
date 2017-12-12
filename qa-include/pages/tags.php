@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-tags.php
 	Description: Controller for popular tags page
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -64,17 +63,21 @@ if (count($populartags)) {
 			'count' => qa_format_number($count, 0, true),
 		);
 
-		if ((++$output) >= $pagesize)
+		if ((++$output) >= $pagesize) {
 			break;
+		}
 	}
-
-} else
+} else {
 	$qa_content['title'] = qa_lang_html('main/no_tags_found');
+}
+
+$qa_content['canonical'] = qa_get_canonical();
 
 $qa_content['page_links'] = qa_html_page_links(qa_request(), $start, $pagesize, $tagcount, qa_opt('pages_prev_next'));
 
-if (empty($qa_content['page_links']))
+if (empty($qa_content['page_links'])) {
 	$qa_content['suggest_next'] = qa_html_suggest_ask();
+}
 
 
 return $qa_content;

@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-db-selects.php
 	Description: Builders of selectspec arrays (see qa-db.php) used to specify database SELECTs
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -1891,7 +1890,7 @@ function qa_db_user_favorite_non_qs_selectspec($userid)
  * Return the selectspec to retrieve the list of recent updates for $userid. Set $forfavorites to whether this should
  * include updates on the user's favorites and $forcontent to whether it should include responses to user's content.
  * This combines events from both the user's stream and the the shared stream for any entities which the user has
- * favorited and which no longer post to user streams (see long comment in qa-db-favorites.php).
+ * favorited and which no longer post to user streams (see long comment in /qa-include/db/favorites.php).
  * @param $userid
  * @param bool $forfavorites
  * @param bool $forcontent

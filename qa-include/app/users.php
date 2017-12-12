@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-app-users.php
 	Description: User management (application level) for basic user operations
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -42,14 +41,19 @@ define('QA_USER_FLAGS_NO_MAILINGS', 32);
 define('QA_USER_FLAGS_WELCOME_NOTICE', 64);
 define('QA_USER_FLAGS_MUST_CONFIRM', 128);
 define('QA_USER_FLAGS_NO_WALL_POSTS', 256);
-define('QA_USER_FLAGS_MUST_APPROVE', 512);
+define('QA_USER_FLAGS_MUST_APPROVE', 512); // @deprecated
 
 define('QA_FIELD_FLAGS_MULTI_LINE', 1);
 define('QA_FIELD_FLAGS_LINK_URL', 2);
 define('QA_FIELD_FLAGS_ON_REGISTER', 4);
 
-@define('QA_FORM_EXPIRY_SECS', 86400); // how many seconds a form is valid for submission
-@define('QA_FORM_KEY_LENGTH', 32);
+if (!defined('QA_FORM_EXPIRY_SECS')) {
+	// how many seconds a form is valid for submission
+	define('QA_FORM_EXPIRY_SECS', 86400);
+}
+if (!defined('QA_FORM_KEY_LENGTH')) {
+	define('QA_FORM_KEY_LENGTH', 32);
+}
 
 
 if (QA_FINAL_EXTERNAL_USERS) {
@@ -542,8 +546,9 @@ if (QA_FINAL_EXTERNAL_USERS) {
 	{
 		if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
 
-		if (!strlen($handle))
-			return '';
+		if (strlen($handle) === 0) {
+			return qa_lang('main/anonymous');
+		}
 
 		$url = qa_path_html('user/' . $handle);
 		$favclass = $favorited ? ' qa-user-favorited' : '';
@@ -1009,7 +1014,7 @@ function qa_user_maximum_permit_error($permitoption, $limitaction = null, $check
  * Check whether the logged in user has permission to perform an action.
  *
  * @param string $permitoption The permission to check (if null, this simply checks whether the user is blocked).
- * @param string $limitaction Constant from qa-app-limits.php to check against user or IP rate limits.
+ * @param string $limitaction Constant from /qa-include/app/limits.php to check against user or IP rate limits.
  * @param int $userlevel A QA_USER_LEVEL_* constant to consider the user at a different level to usual (e.g. if
  *   they are performing this action in a category for which they have elevated privileges).
  * @param bool $checkblocks Whether to check the user's blocked status.
@@ -1021,7 +1026,7 @@ function qa_user_maximum_permit_error($permitoption, $limitaction = null, $check
  *   'userblock' => the user has been blocked
  *   'ipblock' => the ip address has been blocked
  *   'confirm' => the user should confirm their email address
- *   'approve' => the user needs to be approved by the site admins
+ *   'approve' => the user needs to be approved by the site admins (no longer used as global permission)
  *   'limit' => the user or IP address has reached a rate limit (if $limitaction specified)
  *   false => the operation can go ahead
  */
@@ -1050,9 +1055,6 @@ function qa_user_permit_error($permitoption = null, $limitaction = null, $userle
 
 	if (!$error && isset($userid) && ($flags & QA_USER_FLAGS_MUST_CONFIRM) && qa_opt('confirm_user_emails'))
 		$error = 'confirm';
-
-	if (!$error && isset($userid) && ($flags & QA_USER_FLAGS_MUST_APPROVE) && qa_opt('moderate_users'))
-		$error = 'approve';
 
 	if (isset($limitaction) && !$error) {
 		if (qa_user_limits_remaining($limitaction) <= 0)

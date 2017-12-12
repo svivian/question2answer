@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-app-messages.php
 	Description: Handling private or public messages (wall posts)
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -59,7 +58,10 @@ function qa_wall_error_html($fromuserid, $touserid, $touserflags)
 					break;
 
 				case 'approve':
-					return qa_lang_html('profile/post_wall_must_be_approved');
+					return strtr(qa_lang_html('profile/post_wall_must_be_approved'), array(
+						'^1' => '<a href="' . qa_path_html('account') . '">',
+						'^2' => '</a>',
+					));
 					break;
 
 				case false:

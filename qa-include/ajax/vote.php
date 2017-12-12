@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-ajax-vote.php
 	Description: Server-side response to Ajax voting requests
 
 
@@ -35,10 +34,9 @@ $code = qa_post_text('code');
 $userid = qa_get_logged_in_userid();
 $cookieid = qa_cookie_get();
 
-if (!qa_check_form_security_code('vote', $code))
+if (!qa_check_form_security_code('vote', $code)) {
 	$voteerror = qa_lang_html('misc/form_security_reload');
-
-else {
+} else {
 	$post = qa_db_select_with_pending(qa_db_full_post_selectspec($userid, $postid));
 	$voteerror = qa_vote_error_html($post, $vote, $userid, qa_request());
 }

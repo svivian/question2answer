@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-user-wall.php
 	Description: Controller for user page showing all user wall posts
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -35,7 +34,7 @@ if (QA_FINAL_EXTERNAL_USERS)
 	qa_fatal_error('User accounts are handled by external code');
 
 
-// $handle, $userhtml are already set by qa-page-user.php
+// $handle, $userhtml are already set by /qa-include/page/user.php
 
 $start = qa_get_start();
 

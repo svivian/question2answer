@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-db-recalc.php
 	Description: Database functions for recalculations (clean-up operations)
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -252,16 +251,17 @@ function qa_db_posts_answers_recount($firstpostid, $lastpostid)
  */
 function qa_db_users_get_for_recalc_points($startuserid, $count)
 {
-	if (QA_FINAL_EXTERNAL_USERS)
+	if (QA_FINAL_EXTERNAL_USERS) {
 		return qa_db_read_all_values(qa_db_query_sub(
 			'SELECT userid FROM ((SELECT DISTINCT userid FROM ^posts WHERE userid>=# ORDER BY userid LIMIT #) UNION (SELECT DISTINCT userid FROM ^uservotes WHERE userid>=# ORDER BY userid LIMIT #)) x ORDER BY userid LIMIT #',
 			$startuserid, $count, $startuserid, $count, $count
 		));
-	else
+	} else {
 		return qa_db_read_all_values(qa_db_query_sub(
 			'SELECT DISTINCT userid FROM ^users WHERE userid>=# ORDER BY userid LIMIT #',
 			$startuserid, $count
 		));
+	}
 }
 
 

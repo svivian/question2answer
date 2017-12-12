@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-admin-default.php
 	Description: Controller for most admin pages which just contain options
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../../');
 	exit;
 }
 
@@ -147,7 +146,6 @@ $optiontype = array(
 	'allow_user_walls' => 'checkbox',
 	'allow_self_answer' => 'checkbox',
 	'allow_view_q_bots' => 'checkbox',
-	'approve_user_required' => 'checkbox',
 	'avatar_allow_gravatar' => 'checkbox',
 	'avatar_allow_upload' => 'checkbox',
 	'avatar_default_show' => 'checkbox',
@@ -195,6 +193,7 @@ $optiontype = array(
 	'notify_admin_q_post' => 'checkbox',
 	'notify_users_default' => 'checkbox',
 	'q_urls_remove_accents' => 'checkbox',
+	'recalc_hotness_q_view' => 'checkbox',
 	'register_notify_admin' => 'checkbox',
 	'show_c_reply_buttons' => 'checkbox',
 	'show_compact_numbers' => 'checkbox',
@@ -389,7 +388,7 @@ switch ($adminsection) {
 	case 'viewing':
 		$subtitle = 'admin/viewing_title';
 		$showoptions = array(
-			'q_urls_title_length', 'q_urls_remove_accents', 'do_count_q_views', 'show_view_counts', 'show_view_count_q_page', '',
+			'q_urls_title_length', 'q_urls_remove_accents', 'do_count_q_views', 'show_view_counts', 'show_view_count_q_page', 'recalc_hotness_q_view', '',
 			'voting_on_qs', 'voting_on_q_page_only', 'voting_on_as', 'voting_on_cs', 'votes_separated', '',
 			'show_url_links', 'links_in_new_window', 'show_when_created', 'show_full_date_days'
 		);
@@ -425,6 +424,7 @@ switch ($adminsection) {
 		$checkboxtodisplay = array(
 			'show_view_counts' => 'option_do_count_q_views',
 			'show_view_count_q_page' => 'option_do_count_q_views',
+			'recalc_hotness_q_view' => 'option_do_count_q_views',
 			'votes_separated' => 'option_voting_on_qs || option_voting_on_as',
 			'voting_on_q_page_only' => 'option_voting_on_qs',
 			'show_full_date_days' => 'option_show_when_created',
@@ -563,7 +563,7 @@ switch ($adminsection) {
 		$getoptions = qa_get_options(array('feedback_enabled', 'permit_post_q', 'permit_post_a', 'permit_post_c'));
 
 		if (!QA_FINAL_EXTERNAL_USERS)
-			array_push($showoptions, 'confirm_user_emails', 'confirm_user_required', 'moderate_users', 'approve_user_required', '');
+			array_push($showoptions, 'confirm_user_emails', 'confirm_user_required', 'moderate_users', '');
 
 		$captchamodules = qa_list_modules('captcha');
 
@@ -626,7 +626,6 @@ switch ($adminsection) {
 
 		$checkboxtodisplay = array(
 			'confirm_user_required' => 'option_confirm_user_emails',
-			'approve_user_required' => 'option_moderate_users',
 			'captcha_on_unapproved' => 'option_moderate_users',
 			'captcha_on_unconfirmed' => 'option_confirm_user_emails && !(option_moderate_users && option_captcha_on_unapproved)',
 			'captcha_module' => 'option_captcha_on_register || option_captcha_on_anon_post || (option_confirm_user_emails && option_captcha_on_unconfirmed) || (option_moderate_users && option_captcha_on_unapproved) || option_captcha_on_reset_password || option_captcha_on_feedback',
@@ -1043,7 +1042,7 @@ foreach ($showoptions as $optionname) {
 				$metadata = $metadataUtil->fetchFromAddonPath($themedirectory);
 				if (empty($metadata)) {
 					// limit theme parsing to first 8kB
-					$contents = file_get_contents($themedirectory . '/qa-styles.css', false, null, 0, 8192);
+					$contents = @file_get_contents($themedirectory . '/qa-styles.css', false, null, 0, 8192);
 					$metadata = qa_addon_metadata($contents, 'Theme');
 				}
 
@@ -1203,6 +1202,10 @@ foreach ($showoptions as $optionname) {
 			case 'min_len_a_content':
 			case 'min_len_c_content':
 				$optionfield['note'] = qa_lang_html('admin/characters');
+				break;
+
+			case 'recalc_hotness_q_view':
+				$optionfield['note'] = '<span class="qa-form-wide-help" title="' . qa_lang_html('admin/recalc_hotness_q_view_note') . '">?</span>';
 				break;
 
 			case 'min_num_q_tags':

@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-app-post-update.php
 	Description: Changing questions, answer and comments (application level)
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -43,7 +42,7 @@ define('QA_POST_STATUS_QUEUED', 2);
  * and $name, then reindex based on $text. For backwards compatibility if $name is null then the name will not be
  * changed. Pass the question's database record before changes in $oldquestion and details of the user doing this in
  * $userid, $handle and $cookieid. Set $remoderate to true if the question should be requeued for moderation if
- * modified. Set $silent to true to not mark the question as edited. Reports event as appropriate. See qa-app-posts.php
+ * modified. Set $silent to true to not mark the question as edited. Reports event as appropriate. See /qa-include/app/posts.php
  * for a higher-level function which is easier to use.
  * @param $oldquestion
  * @param $title
@@ -141,7 +140,7 @@ function qa_question_set_content($oldquestion, $title, $content, $format, $text,
  * Set the selected answer (application level) of $oldquestion to $selchildid. Pass details of the user doing this
  * in $userid, $handle and $cookieid, and the database records for the selected and deselected answers in $answers.
  * Handles user points values and notifications.
- * See qa-app-posts.php for a higher-level function which is easier to use.
+ * See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $userid
  * @param $handle
  * @param $cookieid
@@ -184,7 +183,7 @@ function qa_question_set_selchildid($userid, $handle, $cookieid, $oldquestion, $
 /**
  * Reopen $oldquestion if it was closed. Pass details of the user doing this in $userid, $handle and $cookieid, and the
  * $oldclosepost (to match $oldquestion['closedbyid']) if any.
- * See qa-app-posts.php for a higher-level function which is easier to use.
+ * See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldquestion
  * @param $oldclosepost
  * @param $userid
@@ -212,7 +211,7 @@ function qa_question_close_clear($oldquestion, $oldclosepost, $userid, $handle, 
 /**
  * Close $oldquestion as a duplicate of the question with id $originalpostid. Pass details of the user doing this in
  * $userid, $handle and $cookieid, and the $oldclosepost (to match $oldquestion['closedbyid']) if any. See
- * qa-app-posts.php for a higher-level function which is easier to use.
+ * /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldquestion
  * @param $oldclosepost
  * @param $originalpostid
@@ -238,7 +237,7 @@ function qa_question_close_duplicate($oldquestion, $oldclosepost, $originalposti
 /**
  * Close $oldquestion with the reason given in $note. Pass details of the user doing this in $userid, $handle and
  * $cookieid, and the $oldclosepost (to match $oldquestion['closedbyid']) if any.
- * See qa-app-posts.php for a higher-level function which is easier to use.
+ * See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldquestion
  * @param $oldclosepost
  * @param $note
@@ -271,7 +270,7 @@ function qa_question_close_other($oldquestion, $oldclosepost, $note, $userid, $h
 
 /**
  * Set $oldquestion to hidden if $hidden is true, visible/normal if otherwise. All other parameters are as for qa_question_set_status(...)
- * This function is included mainly for backwards compatibility.
+ * @deprecated Replaced by qa_question_set_status.
  * @param $oldquestion
  * @param $hidden
  * @param $userid
@@ -293,7 +292,7 @@ function qa_question_set_hidden($oldquestion, $hidden, $userid, $handle, $cookie
  * question in $answers, the database records for all comments on the question or the question's answers in
  * $commentsfollows ($commentsfollows can also contain records for follow-on questions which are ignored), and
  * $closepost to match $oldquestion['closedbyid'] (if any). Handles indexing, user points, cached counts and event
- * reports. See qa-app-posts.php for a higher-level function which is easier to use.
+ * reports. See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldquestion
  * @param $status
  * @param $userid
@@ -441,7 +440,7 @@ function qa_question_set_status($oldquestion, $status, $userid, $handle, $cookie
  * records for all comments on the question or the question's answers in $commentsfollows ($commentsfollows can also
  * contain records for follow-on questions which are ignored), and $closepost to match $oldquestion['closedbyid'] (if any).
  * Set $silent to true to not mark the question as edited. Handles cached counts and event reports and will reset category
- * IDs and paths for all answers and comments. See qa-app-posts.php for a higher-level function which is easier to use.
+ * IDs and paths for all answers and comments. See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldquestion
  * @param $categoryid
  * @param $userid
@@ -500,7 +499,7 @@ function qa_question_set_category($oldquestion, $categoryid, $userid, $handle, $
  * Permanently delete a question (application level) from the database. The question must not have any answers or
  * comments on it. Pass details of the user doing this in $userid, $handle and $cookieid, and $closepost to match
  * $oldquestion['closedbyid'] (if any). Handles unindexing, votes, points, cached counts and event reports.
- * See qa-app-posts.php for a higher-level function which is easier to use.
+ * See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldquestion
  * @param $userid
  * @param $handle
@@ -599,7 +598,7 @@ function qa_post_unindex($postid)
  * record before changes in $oldanswer, the question's in $question, and details of the user doing this in $userid,
  * $handle and $cookieid. Set $remoderate to true if the question should be requeued for moderation if modified. Set
  * $silent to true to not mark the question as edited. Handle indexing and event reports as appropriate. See
- * qa-app-posts.php for a higher-level function which is easier to use.
+ * /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldanswer
  * @param $content
  * @param $format
@@ -671,7 +670,7 @@ function qa_answer_set_content($oldanswer, $content, $format, $text, $notify, $u
 
 /**
  * Set $oldanswer to hidden if $hidden is true, visible/normal if otherwise. All other parameters are as for qa_answer_set_status(...)
- * This function is included mainly for backwards compatibility.
+ * @deprecated Replaced by qa_answer_set_status.
  * @param $oldanswer
  * @param $hidden
  * @param $userid
@@ -690,7 +689,7 @@ function qa_answer_set_hidden($oldanswer, $hidden, $userid, $handle, $cookieid, 
  * Set the status (application level) of $oldanswer to $status, one of the QA_POST_STATUS_* constants above. Pass
  * details of the user doing this in $userid, $handle and $cookieid, the database record for the question in $question,
  * and the database records for all comments on the answer in $commentsfollows ($commentsfollows can also contain other
- * records which are ignored). Handles indexing, user points, cached counts and event reports. See qa-app-posts.php for
+ * records which are ignored). Handles indexing, user points, cached counts and event reports. See /qa-include/app/posts.php for
  * a higher-level function which is easier to use.
  * @param $oldanswer
  * @param $status
@@ -810,7 +809,7 @@ function qa_answer_set_status($oldanswer, $status, $userid, $handle, $cookieid, 
  * Permanently delete an answer (application level) from the database. The answer must not have any comments or
  * follow-on questions. Pass the database record for the question in $question and details of the user doing this
  * in $userid, $handle and $cookieid. Handles unindexing, votes, points, cached counts and event reports.
- * See qa-app-posts.php for a higher-level function which is easier to use.
+ * See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldanswer
  * @param $question
  * @param $userid
@@ -890,7 +889,7 @@ function qa_answer_set_userid($oldanswer, $userid, $handle, $cookieid)
  * record before changes in $oldcomment, details of the user doing this in $userid, $handle and $cookieid, the
  * antecedent question in $question and the answer's database record in $answer if this is a comment on an answer,
  * otherwise null. Set $remoderate to true if the question should be requeued for moderation if modified. Set $silent
- * to true to not mark the question as edited. Handles unindexing and event reports. See qa-app-posts.php for a
+ * to true to not mark the question as edited. Handles unindexing and event reports. See /qa-include/app/posts.php for a
  * higher-level function which is easier to use.
  * @param $oldcomment
  * @param $content
@@ -1065,7 +1064,7 @@ function qa_answer_to_comment($oldanswer, $parentid, $content, $format, $text, $
 
 /**
  * Set $oldcomment to hidden if $hidden is true, visible/normal if otherwise. All other parameters are as for qa_comment_set_status(...)
- * This function is included mainly for backwards compatibility.
+ * @deprecated Replaced by qa_comment_set_status.
  * @param $oldcomment
  * @param $hidden
  * @param $userid
@@ -1084,7 +1083,7 @@ function qa_comment_set_hidden($oldcomment, $hidden, $userid, $handle, $cookieid
  * Set the status (application level) of $oldcomment to $status, one of the QA_POST_STATUS_* constants above. Pass the
  * antecedent question's record in $question, details of the user doing this in $userid, $handle and $cookieid, and the
  * answer's database record in $answer if this is a comment on an answer, otherwise null. Handles indexing, user
- * points, cached counts and event reports. See qa-app-posts.php for a higher-level function which is easier to use.
+ * points, cached counts and event reports. See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldcomment
  * @param $status
  * @param $userid
@@ -1204,7 +1203,7 @@ function qa_comment_set_status($oldcomment, $status, $userid, $handle, $cookieid
  * Permanently delete a comment in $oldcomment (application level) from the database. Pass the database question in $question
  * and the answer's database record in $answer if this is a comment on an answer, otherwise null. Pass details of the user
  * doing this in $userid, $handle and $cookieid. Handles unindexing, points, cached counts and event reports.
- * See qa-app-posts.php for a higher-level function which is easier to use.
+ * See /qa-include/app/posts.php for a higher-level function which is easier to use.
  * @param $oldcomment
  * @param $question
  * @param $parent

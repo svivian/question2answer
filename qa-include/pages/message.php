@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-message.php
 	Description: Controller for private messaging page
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -238,7 +237,7 @@ if (qa_opt('show_message_history')) {
 			$qa_content['message_list']['messages'][] = qa_message_html_fields($message, $options);
 	}
 
-	$qa_content['navigation']['sub'] = qa_messages_sub_navigation();
+	$qa_content['navigation']['sub'] = qa_user_sub_navigation($fromhandle, 'messages', true);
 }
 
 

@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-message.php
 	Description: Controller for private messaging page
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -76,6 +75,13 @@ $count = $numMessages['count'];
 $qa_content = qa_content_prepare();
 $qa_content['title'] = qa_lang_html($showOutbox ? 'misc/pm_outbox_title' : 'misc/pm_inbox_title');
 
+$qa_content['custom'] =
+	'<div style="text-align:center">' .
+		($showOutbox ? '<a href="' . qa_path_html('messages') . '">' . qa_lang_html('misc/inbox') . '</a>' : qa_lang_html('misc/inbox')) .
+		' - ' .
+		($showOutbox ? qa_lang_html('misc/outbox') : '<a href="' . qa_path_html('messages/sent') . '">' . qa_lang_html('misc/outbox') . '</a>') .
+	'</div>';
+
 $qa_content['message_list'] = array(
 	'tags' => 'id="privatemessages"',
 	'messages' => array(),
@@ -98,20 +104,24 @@ if ($showOutbox)
 foreach ($userMessages as $message) {
 	$msgFormat = qa_message_html_fields($message, $htmlDefaults);
 	$replyHandle = $showOutbox ? $message['tohandle'] : $message['fromhandle'];
+	$replyId = $showOutbox ? $message['touserid'] : $message['fromuserid'];
 
 	$msgFormat['form'] = array(
 		'style' => 'light',
-		'buttons' => array(
-			'reply' => array(
-				'tags' => 'onclick="window.location.href=\'' . qa_path_html('message/' . $replyHandle) . '\';return false"',
-				'label' => qa_lang_html('question/reply_button'),
-			),
-			'delete' => array(
-				'tags' => 'name="m' . qa_html($message['messageid']) . '_dodelete" onclick="return qa_pm_click(' . qa_js($message['messageid']) . ', this, ' . qa_js($showOutbox ? 'outbox' : 'inbox') . ');"',
-				'label' => qa_lang_html('question/delete_button'),
-				'popup' => qa_lang_html('profile/delete_pm_popup'),
-			),
-		),
+		'buttons' => array(),
+	);
+
+	if (!empty($replyHandle) && $replyId != $loginUserId) {
+		$msgFormat['form']['buttons']['reply'] = array(
+			'tags' => 'onclick="window.location.href=\'' . qa_path_html('message/' . $replyHandle) . '\';return false"',
+			'label' => qa_lang_html('question/reply_button'),
+		);
+	}
+
+	$msgFormat['form']['buttons']['delete'] = array(
+		'tags' => 'name="m' . qa_html($message['messageid']) . '_dodelete" onclick="return qa_pm_click(' . qa_js($message['messageid']) . ', this, ' . qa_js($showOutbox ? 'outbox' : 'inbox') . ');"',
+		'label' => qa_lang_html('question/delete_button'),
+		'popup' => qa_lang_html('profile/delete_pm_popup'),
 	);
 
 	$qa_content['message_list']['messages'][] = $msgFormat;
@@ -119,6 +129,6 @@ foreach ($userMessages as $message) {
 
 $qa_content['page_links'] = qa_html_page_links(qa_request(), $start, $pagesize, $count, qa_opt('pages_prev_next'));
 
-$qa_content['navigation']['sub'] = qa_messages_sub_navigation($showOutbox ? 'outbox' : 'inbox');
+$qa_content['navigation']['sub'] = qa_user_sub_navigation($loginUserHandle, 'messages', true);
 
 return $qa_content;

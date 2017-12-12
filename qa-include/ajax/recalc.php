@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-ajax-recalc.php
 	Description: Server-side response to Ajax admin recalculation requests
 
 
@@ -33,8 +32,9 @@ if (qa_get_logged_in_level() >= QA_USER_LEVEL_ADMIN) {
 		$state = qa_post_text('state');
 		$stoptime = time() + 3;
 
-		while (qa_recalc_perform_step($state) && time() < $stoptime)
-			;
+		while (qa_recalc_perform_step($state) && time() < $stoptime) {
+			// wait
+		}
 
 		$message = qa_recalc_get_message($state);
 	}

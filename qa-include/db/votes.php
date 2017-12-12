@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-db-votes.php
 	Description: Database-level access to votes tables
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -94,11 +93,12 @@ function qa_db_userflags_clear_all($postid)
  */
 function qa_db_post_recount_votes($postid)
 {
-	if (qa_should_update_counts())
+	if (qa_should_update_counts()) {
 		qa_db_query_sub(
 			'UPDATE ^posts AS x, (SELECT COALESCE(SUM(GREATEST(0,vote)),0) AS upvotes, -COALESCE(SUM(LEAST(0,vote)),0) AS downvotes FROM ^uservotes WHERE postid=#) AS a SET x.upvotes=a.upvotes, x.downvotes=a.downvotes, x.netvotes=a.upvotes-a.downvotes WHERE x.postid=#',
 			$postid, $postid
 		);
+	}
 }
 
 
@@ -108,11 +108,12 @@ function qa_db_post_recount_votes($postid)
  */
 function qa_db_post_recount_flags($postid)
 {
-	if (qa_should_update_counts())
+	if (qa_should_update_counts()) {
 		qa_db_query_sub(
 			'UPDATE ^posts AS x, (SELECT COALESCE(SUM(IF(flag, 1, 0)),0) AS flagcount FROM ^uservotes WHERE postid=#) AS a SET x.flagcount=a.flagcount WHERE x.postid=#',
 			$postid, $postid
 		);
+	}
 }
 
 

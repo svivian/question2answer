@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-theme-base.php
 	Description: Default theme class, broken into lots of little functions for easy overriding
 
 
@@ -247,7 +246,7 @@ class qa_html_theme_base
 
 
 	// From here on, we have a large number of class methods which output particular pieces of HTML markup
-	// The calling chain is initiated from qa-page.php, or qa-ajax-*.php for refreshing parts of a page,
+	// The calling chain is initiated from qa-page.php, or ajax/*.php for refreshing parts of a page,
 	// For most HTML elements, the name of the function is similar to the element's CSS class, for example:
 	// search() outputs <div class="qa-search">, q_list() outputs <div class="qa-q-list">, etc...
 
@@ -2134,8 +2133,9 @@ class qa_html_theme_base
 		if (!empty($q_view)) {
 			$this->output('<div class="qa-q-view' . (@$q_view['hidden'] ? ' qa-q-view-hidden' : '') . rtrim(' ' . @$q_view['classes']) . '"' . rtrim(' ' . @$q_view['tags']) . '>');
 
-			if (isset($q_view['main_form_tags']))
-				$this->output('<form ' . $q_view['main_form_tags'] . '>'); // form for voting buttons
+			if (isset($q_view['main_form_tags'])) {
+				$this->output('<form ' . $q_view['main_form_tags'] . '>'); // form for question voting buttons
+			}
 
 			$this->q_view_stats($q_view);
 
@@ -2165,8 +2165,9 @@ class qa_html_theme_base
 	{
 		$this->output('<div class="qa-q-view-main">');
 
-		if (isset($q_view['main_form_tags']))
+		if (isset($q_view['main_form_tags'])) {
 			$this->output('<form ' . $q_view['main_form_tags'] . '>'); // form for buttons on question
+		}
 
 		$this->view_count($q_view);
 		$this->q_view_content($q_view);
@@ -2176,13 +2177,13 @@ class qa_html_theme_base
 		$this->post_tags($q_view, 'qa-q-view');
 		$this->post_avatar_meta($q_view, 'qa-q-view');
 		$this->q_view_buttons($q_view);
-		$this->c_list(@$q_view['c_list'], 'qa-q-view');
 
 		if (isset($q_view['main_form_tags'])) {
 			$this->form_hidden_elements(@$q_view['buttons_form_hidden']);
 			$this->output('</form>');
 		}
 
+		$this->c_list(@$q_view['c_list'], 'qa-q-view');
 		$this->c_form(@$q_view['c_form']);
 
 		$this->output('</div> <!-- END qa-q-view-main -->');
@@ -2290,8 +2291,9 @@ class qa_html_theme_base
 
 		$this->output('<div class="qa-a-list-item ' . $extraclass . '" ' . @$a_item['tags'] . '>');
 
-		if (isset($a_item['main_form_tags']))
-			$this->output('<form ' . $a_item['main_form_tags'] . '>'); // form for voting buttons
+		if (isset($a_item['main_form_tags'])) {
+			$this->output('<form ' . $a_item['main_form_tags'] . '>'); // form for answer voting buttons
+		}
 
 		$this->voting($a_item);
 
@@ -2310,8 +2312,9 @@ class qa_html_theme_base
 	{
 		$this->output('<div class="qa-a-item-main">');
 
-		if (isset($a_item['main_form_tags']))
+		if (isset($a_item['main_form_tags'])) {
 			$this->output('<form ' . $a_item['main_form_tags'] . '>'); // form for buttons on answer
+		}
 
 		if ($a_item['hidden'])
 			$this->output('<div class="qa-a-item-hidden">');
@@ -2328,13 +2331,12 @@ class qa_html_theme_base
 
 		$this->a_item_buttons($a_item);
 
-		$this->c_list(@$a_item['c_list'], 'qa-a-item');
-
 		if (isset($a_item['main_form_tags'])) {
 			$this->form_hidden_elements(@$a_item['buttons_form_hidden']);
 			$this->output('</form>');
 		}
 
+		$this->c_list(@$a_item['c_list'], 'qa-a-item');
 		$this->c_form(@$a_item['c_form']);
 
 		$this->output('</div> <!-- END qa-a-item-main -->');
@@ -2400,7 +2402,14 @@ class qa_html_theme_base
 
 		$this->output('<div class="qa-c-list-item ' . $extraclass . '" ' . @$c_item['tags'] . '>');
 
-		$this->voting($c_item);
+		if (isset($c_item['vote_view']) && isset($c_item['main_form_tags'])) {
+			// form for comment voting buttons
+			$this->output('<form ' . $c_item['main_form_tags'] . '>');
+			$this->voting($c_item);
+			$this->form_hidden_elements(@$c_item['voting_form_hidden']);
+			$this->output('</form>');
+		}
+
 		$this->c_item_main($c_item);
 		$this->c_item_clear();
 
@@ -2409,6 +2418,10 @@ class qa_html_theme_base
 
 	public function c_item_main($c_item)
 	{
+		if (isset($c_item['main_form_tags'])) {
+			$this->output('<form ' . $c_item['main_form_tags'] . '>'); // form for buttons on comment
+		}
+
 		$this->error(@$c_item['error']);
 
 		if (isset($c_item['expand_tags']))
@@ -2422,6 +2435,11 @@ class qa_html_theme_base
 		$this->post_avatar_meta($c_item, 'qa-c-item');
 		$this->c_item_buttons($c_item);
 		$this->output('</div>');
+
+		if (isset($c_item['main_form_tags'])) {
+			$this->form_hidden_elements(@$c_item['buttons_form_hidden']);
+			$this->output('</form>');
+		}
 	}
 
 	public function c_item_link($c_item)

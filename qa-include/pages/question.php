@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-question.php
 	Description: Controller for question page (only viewing functionality here)
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -141,7 +140,10 @@ if ($permiterror && (qa_is_human_probably() || !qa_opt('allow_view_q_bots'))) {
 			break;
 
 		case 'approve':
-			$qa_content['error'] = qa_lang_html('main/view_q_must_be_approved');
+			$qa_content['error'] = strtr(qa_lang_html('main/view_q_must_be_approved'), array(
+				'^1' => '<a href="' . qa_path_html('account') . '">',
+				'^2' => '</a>',
+			));
 			break;
 
 		default:
@@ -427,37 +429,41 @@ if ($question['basetype'] == 'Q') {
 			? qa_lang_html_sub_split('question/1_answer_title', '1', '1')
 			: qa_lang_html_sub_split('question/x_answers_title', $countfortitle);
 
-		if ($microdata)
+		if ($microdata) {
 			$split['data'] = '<span itemprop="answerCount">' . $split['data'] . '</span>';
-
+		}
 		$qa_content['a_list']['title'] = $split['prefix'] . $split['data'] . $split['suffix'];
 	} else
 		$qa_content['a_list']['title_tags'] .= ' style="display:none;" ';
 }
 
-if (!$formrequested)
+if (!$formrequested) {
 	$qa_content['page_links'] = qa_html_page_links(qa_request(), $pagestart, $pagesize, $countforpages, qa_opt('pages_prev_next'), array(), false, 'a_list_title');
+}
 
 
 // Some generally useful stuff
 
-if (qa_using_categories() && count($categories))
+if (qa_using_categories() && count($categories)) {
 	$qa_content['navigation']['cat'] = qa_category_navigation($categories, $question['categoryid']);
+}
 
-if (isset($jumptoanchor))
+if (isset($jumptoanchor)) {
 	$qa_content['script_onloads'][] = array(
 		'qa_scroll_page_to($("#"+' . qa_js($jumptoanchor) . ').offset().top);'
 	);
+}
 
 
 // Determine whether this request should be counted for page view statistics.
-// The lastviewip check is now in the hotness query in order to bypass caching.
+// The lastviewip check is now part of the hotness query in order to bypass caching.
 
 if (qa_opt('do_count_q_views') && !$formrequested && !qa_is_http_post() && qa_is_human_probably() &&
-	((!$question['views']) || ( // if it has more than zero views
-		(@inet_ntop($question['createip']) != qa_remote_ip_address() || !isset($question['createip'])) && // and different IP from the creator
-		($question['userid'] != $userid || !isset($question['userid'])) && // and different user from the creator
-		($question['cookieid'] != $cookieid || !isset($question['cookieid'])) // and different cookieid from the creator
+	(!$question['views'] || (
+		// if it has more than zero views, then it must be different IP & user & cookieid from the creator
+		(@inet_ntop($question['createip']) != qa_remote_ip_address() || !isset($question['createip'])) &&
+		($question['userid'] != $userid || !isset($question['userid'])) &&
+		($question['cookieid'] != $cookieid || !isset($question['cookieid']))
 	))
 ) {
 	$qa_content['inc_views_postid'] = $questionid;

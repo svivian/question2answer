@@ -3,7 +3,6 @@
 	Question2Answer by Gideon Greenspan and contributors
 	http://www.question2answer.org/
 
-	File: qa-include/qa-page-users-blocked.php
 	Description: Controller for page showing users who have been blocked
 
 
@@ -21,7 +20,7 @@
 */
 
 if (!defined('QA_VERSION')) { // don't allow this page to be requested directly from browser
-	header('Location: ../');
+	header('Location: ../../');
 	exit;
 }
 
@@ -32,8 +31,9 @@ require_once QA_INCLUDE_DIR . 'app/format.php';
 
 // Check we're not using single-sign on integration
 
-if (QA_FINAL_EXTERNAL_USERS)
+if (QA_FINAL_EXTERNAL_USERS) {
 	qa_fatal_error('User accounts are handled by external code');
+}
 
 
 // Get list of blocked users
