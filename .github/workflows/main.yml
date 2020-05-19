@@ -22,7 +22,13 @@ jobs:
     - name: Run a one-line script
       run: echo Hello, world!
 
-    - name: OSKAR-PHP-CS-Fixer
-      uses: OskarStark/php-cs-fixer-ga@2.16.3.1
+    #- name: OSKAR-PHP-CS-Fixer
+    #  uses: OskarStark/php-cs-fixer-ga@2.16.3.1
+    #  with:
+    #    args: --extensions=php --standard=qa-tests/phpcs/ruleset.xml
+
+
+    - name: PHP Code Style (phpcs)
+      uses: chindit/actions-phpcs@master
       with:
-        args: --extensions=php --standard=qa-tests/phpcs/ruleset.xml
+        dir: qa-src/
