@@ -97,7 +97,7 @@ function qa_version_to_float($version)
         $parts = explode('.', $matches[0]);
         $units = 1.0;
 
-		foreach ($parts as $part) {
+        foreach ($parts as $part) {
 			$value += min($part, 999) * $units;
 			$units /= 1000;
 		}
