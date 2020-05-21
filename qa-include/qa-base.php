@@ -91,11 +91,11 @@ if (!isset($qa_autoconnect) || $qa_autoconnect !== false) {
  */
 function qa_version_to_float($version)
 {
-	$value = 0.0;
+    $value = 0.0;
 
-	if (preg_match('/[0-9\.]+/', $version, $matches)) {
-		$parts = explode('.', $matches[0]);
-		$units = 1.0;
+    if (preg_match('/[0-9\.]+/', $version, $matches)) {
+        $parts = explode('.', $matches[0]);
+        $units = 1.0;
 
 		foreach ($parts as $part) {
 			$value += min($part, 999) * $units;
