@@ -1,0 +1,21 @@
+preset: none
+
+risky: false
+
+tab-width: 4
+
+use-tabs: true
+
+enabled:
+  - no_trailing_whitespace
+  - single_quote
+  - unalign_double_arrow
+  - unalign_equals
+
+finder:
+  exclude:
+    - "qa-cache"
+    - "qa-include/vendor"
+    - "qa-external-example"
+    - "qa-theme"
+    - "qa-tests"
