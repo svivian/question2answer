@@ -8,18 +8,21 @@ php:
   - '5.6'
   - '7.0'
   - '7.2'
-  - '7.4'
+  - '7.3'
+
+jobs:
+  include:
+    - php: '5.3'
+      dist: precise
 
 notifications:
-  email:
-    on_success: change
-    on_failure: change
+  email: false
 
 before_script:
   # PHP_CodeSniffer
-  - curl -L -o phpcs.phar https://github.com/squizlabs/PHP_CodeSniffer/releases/download/3.5.5/phpcs.phar
+  - curl -L -o phpcs.phar https://github.com/squizlabs/PHP_CodeSniffer/releases/download/2.9.1/phpcs.phar
   # PHPUnit - manually download old version so that it works on PHP 7
-  # - curl -L -o phpunit.phar https://phar.phpunit.de/phpunit-4.8.35.phar
+  - curl -L -o phpunit.phar https://phar.phpunit.de/phpunit-4.8.35.phar
   # Basic config required for PHPUnit
   - cp qa-tests/phpunit-qa-config.php qa-config.php
 
@@ -27,5 +30,4 @@ script:
   # PHP_CodeSniffer
   - php phpcs.phar --report=emacs --extensions=php --standard=qa-tests/phpcs/ruleset.xml .
   # PHPUnit
-  # - php phpunit.phar --bootstrap qa-tests/autoload.php qa-tests
-  - phpunit --bootstrap qa-tests/autoload.php qa-tests
+  - php phpunit.phar --bootstrap qa-tests/autoload.php qa-tests
