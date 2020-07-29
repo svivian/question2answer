@@ -22,6 +22,12 @@ jobs:
     - name: Run a one-line script
       run: echo Hello, world!
 
+    # - name: PHP Code Style Fixer (php-cs-fixer)
+    #   uses: StephaneBour/actions-php-cs-fixer@1.0.2
+    #   with:
+    #     dir: './qa-src'
+
+
     #- name: OSKAR-PHP-CS-Fixer
     #  uses: OskarStark/php-cs-fixer-ga@2.16.3.1
     #  with:

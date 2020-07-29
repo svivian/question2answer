@@ -16,10 +16,10 @@
 	More about this license: http://www.question2answer.org/license.php
 */
 
-namespace Q2A\App;
+	namespace Q2A\App;
 
-use Q2A\Http\Router;
-use Q2A\Database\DbConnection;
+	use Q2A\Http\Router;
+	use Q2A\Database\DbConnection;
 
 class Application
 {
@@ -29,11 +29,11 @@ class Application
 	/** @var static */
 	protected static $instance;
 
-	protected function __construct()
-	{
-		$this->container = new Container();
-		$this->registerCoreServices();
-	}
+		protected function __construct()
+		{
+			$this->container = new Container();
+			$this->registerCoreServices();
+		}
 
 	/**
 	 * Instantiate and fetch the application as a singleton.
