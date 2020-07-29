@@ -14,9 +14,7 @@ php:
   - '7.3'
 
 notifications:
-  email:
-    on_success: change
-    on_failure: change
+  email: false
 
 before_script:
   # PHP_CodeSniffer
