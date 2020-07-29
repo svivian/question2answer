@@ -10,12 +10,7 @@ enabled:
   - binary_operator_spaces
   - ternary_operator_spaces
   - trailing_comma_in_multiline_array
-disabled:
-  - psr2_braces
 
 finder:
   path:
     - qa-src
-    - qa-include
-  not-path:
-    - qa-include/vendor
