@@ -44,4 +44,4 @@ jobs:
     - name: PHP-CS-Fixer
       uses: docker://oskarstark/php-cs-fixer-ga
       with:
-        args: --config=qa-tests/phpcs/ruleset.xml
+        args: --standard=qa-tests/phpcs/ruleset.xml
