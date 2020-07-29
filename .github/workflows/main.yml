@@ -18,10 +18,6 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    # Runs a single command using the runners shell
-    - name: Run a one-line script
-      run: echo Hello, world!
-
     # - name: PHP Code Style Fixer (php-cs-fixer)
     #   uses: StephaneBour/actions-php-cs-fixer@1.0.2
     #   with:
@@ -39,3 +35,13 @@ jobs:
       with:
         dir: qa-src/
         cli: '--standard=qa-tests/phpcs/ruleset.xml'
+
+  php-cs-fixer:
+    name: PHP-CS-Fixer
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: PHP-CS-Fixer
+      uses: docker://oskarstark/php-cs-fixer-ga
+      with:
+        args: --config=qa-tests/phpcs/ruleset.xml
