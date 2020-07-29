@@ -1,21 +1,20 @@
+version: 7
 preset: none
-
 risky: false
 
 tab-width: 4
-
 use-tabs: true
 
 enabled:
   - no_trailing_whitespace
+  - psr2_braces
+  - indentation
+  - binary_operator_spaces
+  - alpha_ordered_imports
+  - ternary_operator_spaces
+  - trailing_comma_in_multiline_array
   #- single_quote
-  #- unalign_double_arrow
-  #- unalign_equals
 
 finder:
-  exclude:
-    - "qa-cache"
-    - "qa-include/vendor"
-    - "qa-external-example"
-    - "qa-theme"
-    - "qa-tests"
+  path:
+    - qa-src
