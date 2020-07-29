@@ -117,7 +117,7 @@ class Points extends \Q2A\Controllers\BaseController
 				$qa_content['script_var']['qa_warning_recalc'] = qa_lang('admin/stop_recalc_warning');
 
 				$qa_content['script_onloads'][] = array(
-					"qa_recalc_click('dorecalcpoints', document.getElementById('dosaverecalc'), null, 'recalc_ok');"
+					"qa_recalc_click('dorecalcpoints', document.getElementById('dosaverecalc'), null, 'recalc_ok');",
 				);
 			}
 

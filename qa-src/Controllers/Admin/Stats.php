@@ -286,7 +286,7 @@ class Stats extends \Q2A\Controllers\BaseController
 		$qa_content['script_var']['qa_warning_recalc'] = qa_lang('admin/stop_recalc_warning');
 
 		$qa_content['script_onloads'][] = array(
-			"qa_version_check('https://raw.githubusercontent.com/q2a/question2answer/master/VERSION.txt', " . qa_js(qa_html(QA_VERSION), true) . ", 'q2a-version', true);"
+			"qa_version_check('https://raw.githubusercontent.com/q2a/question2answer/master/VERSION.txt', " . qa_js(qa_html(QA_VERSION), true) . ", 'q2a-version', true);",
 		);
 
 		$qa_content['navigation']['sub'] = qa_admin_sub_navigation();

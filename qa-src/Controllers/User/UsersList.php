@@ -47,7 +47,7 @@ class UsersList extends \Q2A\Controllers\BaseController
 		$fetchUsers = function ($start, $pageSize) {
 			return array(
 				qa_opt('cache_userpointscount'),
-				qa_db_select_with_pending(qa_db_top_users_selectspec($start, $pageSize))
+				qa_db_select_with_pending(qa_db_top_users_selectspec($start, $pageSize)),
 			);
 		};
 		$userScore = function ($user) {
@@ -82,7 +82,7 @@ class UsersList extends \Q2A\Controllers\BaseController
 		$fetchUsers = function ($start, $pageSize) {
 			return array(
 				qa_opt('cache_userpointscount'),
-				qa_db_select_with_pending(qa_db_newest_users_selectspec($start, $pageSize))
+				qa_db_select_with_pending(qa_db_newest_users_selectspec($start, $pageSize)),
 			);
 		};
 		$userDate = function ($user) {

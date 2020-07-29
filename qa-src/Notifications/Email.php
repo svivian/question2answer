@@ -20,9 +20,9 @@
 
 namespace Q2A\Notifications;
 
+use PHPMailer;
 use Q2A\Exceptions\FatalErrorException;
 use Q2A\Notifications\Mailer;
-use PHPMailer;
 
 class Email
 {
@@ -129,7 +129,7 @@ class Email
 			'^handle' => $this->handle,
 			'^email' => $this->email,
 			'^open' => "\n",
-			'^close' => "\n"
+			'^close' => "\n",
 		);
 		return array_merge($subs, $addsubs);
 	}
