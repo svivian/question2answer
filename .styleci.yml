@@ -1,19 +1,15 @@
 version: 7
-preset: none
+preset: psr2
 risky: false
 
 tab-width: 4
 use-tabs: true
 
 enabled:
-  - no_trailing_whitespace
-  - psr2_braces
-  - indentation
-  - binary_operator_spaces
   - alpha_ordered_imports
+  - binary_operator_spaces
   - ternary_operator_spaces
   - trailing_comma_in_multiline_array
-  #- single_quote
 
 finder:
   path:
